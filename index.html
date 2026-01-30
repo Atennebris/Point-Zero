@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск военных объектов и госпиталей</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 350px;
+            padding: 20px;
+            background: #16213e;
+            border-right: 2px solid #0f3460;
+            overflow-y: auto;
+        }
+
+        .sidebar h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #e94560;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #0f3460;
+            border-radius: 5px;
+            background: #0f3460;
+            color: #eee;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #c73e54;
+        }
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        button.test-btn {
+            background: #0f3460;
+            font-size: 14px;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        button.test-btn:hover {
+            background: #1a1a3e;
+        }
+
+        .filters {
+            margin-top: 20px;
+            padding: 15px;
+            background: #0f3460;
+            border-radius: 5px;
+        }
+
+        .filters h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #e94560;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .filter-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .filter-item label {
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #0f3460;
+            border-radius: 5px;
+        }
+
+        .results h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #e94560;
+        }
+
+        .result-item {
+            padding: 10px;
+            background: #1a1a2e;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .result-item:hover {
+            background: #2a2a4e;
+        }
+
+        .result-item .type {
+            font-size: 12px;
+            color: #e94560;
+            margin-bottom: 5px;
+        }
+
+        .result-item .name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: #0f3460;
+            border-radius: 5px;
+        }
+
+        .legend h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #e94560;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .legend-item .marker {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .legend-item .marker.military {
+            background: #e94560;
+        }
+
+        .legend-item .marker.hospital {
+            background: #4CAF50;
+        }
+
+        #map {
+            flex: 1;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #e94560;
+        }
+
+        .info-box {
+            padding: 10px;
+            margin-top: 10px;
+            background: #1a1a2e;
+            border-left: 3px solid #e94560;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .status {
+            padding: 10px;
+            margin-top: 10px;
+            background: #1a1a2e;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .status-item {
+            padding: 3px 0;
+        }
+
+        .status-item.success {
+            color: #4CAF50;
+        }
+
+        .status-item.error {
+            color: #e94560;
+        }
+
+        .status-item.pending {
+            color: #FF9800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>🎯 Поиск объектов</h1>
+
+            <div class="form-group">
+                <label>Широта (Latitude)</label>
+                <input type="number" id="latitude" placeholder="Например: 55.7558" step="0.0001" value="55.7558">
+            </div>
+
+            <div class="form-group">
+                <label>Долгота (Longitude)</label>
+                <input type="number" id="longitude" placeholder="Например: 37.6173" step="0.0001" value="37.6173">
+            </div>
+
+            <div class="form-group">
+                <label>Радиус поиска (км)</label>
+                <input type="number" id="radius" placeholder="Например: 10" min="1" max="100" value="20">
+            </div>
+
+            <button id="searchBtn" onclick="searchObjects()">🔍 Найти объекты</button>
+
+            <button onclick="setTestLocation()" class="test-btn">
+                🧪 Тест: Вашингтон (Пентагон)
+            </button>
+            <button onclick="setMoscowLocation()" class="test-btn">
+                🏛️ Тест: Москва
+            </button>
+            <button onclick="setBerlinLocation()" class="test-btn">
+                🇩🇪 Тест: Берлин
+            </button>
+            <button onclick="testSimpleQuery()" class="test-btn" style="background: #4CAF50;">
+                🧪 Тестовый запрос
+            </button>
+
+            <div class="filters">
+                <h3>🔧 Фильтры</h3>
+                <div class="filter-item">
+                    <input type="checkbox" id="filterMilitary" checked>
+                    <label for="filterMilitary">Военные объекты</label>
+                </div>
+                <div class="filter-item">
+                    <input type="checkbox" id="filterHospital" checked>
+                    <label for="filterHospital">Военные госпитали</label>
+                </div>
+            </div>
+
+            <div class="status" id="statusBox" style="display: none;">
+                <h3 style="color: #e94560; margin-bottom: 10px;">📋 Статус</h3>
+                <div id="statusList"></div>
+            </div>
+
+            <div class="legend">
+                <h3>📍 Легенда</h3>
+                <div class="legend-item">
+                    <div class="marker military"></div>
+                    <span>Военные объекты</span>
+                </div>
+                <div class="legend-item">
+                    <div class="marker hospital"></div>
+                    <span>Военные госпитали</span>
+                </div>
+                <div class="legend-item">
+                    <div class="marker" style="background: #2196F3;"></div>
+                    <span>Ваша позиция</span>
+                </div>
+            </div>
+
+            <div class="results">
+                <h3>📊 Результаты: <span id="resultCount">0</span></h3>
+                <div id="resultsList"></div>
+            </div>
+
+            <div class="info-box">
+                <strong>🔍 Источники данных:</strong><br>
+                • OpenStreetMap (Overpass API)<br>
+                • GeoNames API<br>
+                • Wikidata API
+            </div>
+        </div>
+
+        <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let markers = [];
+        let searchMarker;
+        let searchCircle;
+        let allResults = [];
+
+        const OVERPASS_SERVERS = [
+            'https://overpass-api.de/api/interpreter',
+            'https://overpass.kumi.systems/api/interpreter',
+            'https://overpass.nchc.org.tw/api/interpreter'
+        ];
+
+        function initMap() {
+            map = L.map('map').setView([55.7558, 37.6173], 10);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            map.on('click', function(e) {
+                document.getElementById('latitude').value = e.latlng.lat.toFixed(4);
+                document.getElementById('longitude').value = e.latlng.lng.toFixed(4);
+            });
+        }
+
+        function setTestLocation() {
+            document.getElementById('latitude').value = 38.8707;
+            document.getElementById('longitude').value = -77.0559;
+            document.getElementById('radius').value = 10;
+            map.setView([38.8707, -77.0559], 12);
+            addStatus('🇺🇸 Установлены координаты Пентагона', 'pending');
+        }
+
+        function setMoscowLocation() {
+            document.getElementById('latitude').value = 55.7558;
+            document.getElementById('longitude').value = 37.6173;
+            document.getElementById('radius').value = 20;
+            map.setView([55.7558, 37.6173], 10);
+            addStatus('🏛️ Установлены координаты Москвы', 'pending');
+        }
+
+        function setBerlinLocation() {
+            document.getElementById('latitude').value = 52.5200;
+            document.getElementById('longitude').value = 13.4050;
+            document.getElementById('radius').value = 20;
+            map.setView([52.5200, 13.4050], 10);
+            addStatus('🇩🇪 Установлены координаты Берлина', 'pending');
+        }
+
+        function addStatus(message, type = 'pending') {
+            const statusBox = document.getElementById('statusBox');
+            const statusList = document.getElementById('statusList');
+            statusBox.style.display = 'block';
+
+            const statusItem = document.createElement('div');
+            statusItem.className = `status-item ${type}`;
+            statusItem.textContent = message;
+            statusList.appendChild(statusItem);
+        }
+
+        async function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function fetchWithRetry(url, options, retries = 3) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return response;
+                    }
+                    if (response.status === 504 || response.status === 502) {
+                        console.log(`Retry ${i + 1}/${retries} after ${i * 2} seconds...`);
+                        await sleep((i + 1) * 2000);
+                        continue;
+                    }
+                    return response;
+                } catch (error) {
+                    console.error(`Attempt ${i + 1} failed:`, error);
+                    if (i < retries - 1) {
+                        await sleep((i + 1) * 2000);
+                    }
+                }
+            }
+            throw new Error('Max retries exceeded');
+        }
+
+        async function searchOverpassAPI(lat, lon, radius, type) {
+            const radiusMeters = radius * 1000;
+            let query = '';
+
+            if (type === 'military') {
+                query = `
+                    [out:json][timeout:90];
+                    (
+                        node["building"="military"](around:${radiusMeters},${lat},${lon});
+                        way["building"="military"](around:${radiusMeters},${lat},${lon});
+                        relation["building"="military"](around:${radiusMeters},${lat},${lon});
+                        node["military"](around:${radiusMeters},${lat},${lon});
+                        way["military"](around:${radiusMeters},${lat},${lon});
+                        relation["military"](around:${radiusMeters},${lat},${lon});
+                        node["landuse"="military"](around:${radiusMeters},${lat},${lon});
+                        way["landuse"="military"](around:${radiusMeters},${lat},${lon});
+                        relation["landuse"="military"](around:${radiusMeters},${lat},${lon});
+                    );
+                    out center;
+                `;
+            } else if (type === 'hospital') {
+                query = `
+                    [out:json][timeout:90];
+                    (
+                        node["amenity"="hospital"](around:${radiusMeters},${lat},${lon});
+                        way["amenity"="hospital"](around:${radiusMeters},${lat},${lon});
+                        relation["amenity"="hospital"](around:${radiusMeters},${lat},${lon});
+                        node["healthcare"="hospital"](around:${radiusMeters},${lat},${lon});
+                        way["healthcare"="hospital"](around:${radiusMeters},${lat},${lon});
+                        relation["healthcare"="hospital"](around:${radiusMeters},${lat},${lon});
+                        node["building"="hospital"](around:${radiusMeters},${lat},${lon});
+                        way["building"="hospital"](around:${radiusMeters},${lat},${lon});
+                    );
+                    out center;
+                `;
+            }
+
+            console.log(`Поиск ${type} через Overpass API...`);
+
+            for (const server of OVERPASS_SERVERS) {
+                try {
+                    const response = await fetchWithRetry(server, {
+                        method: 'POST',
+                        body: query,
+                        headers: {
+                            'Content-Type': 'text/plain; charset=utf-8'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log(`Успех с сервера ${server}`);
+                        console.log(`Найдено ${data.elements?.length || 0} элементов`);
+
+                        let count = 0;
+                        if (data.elements && data.elements.length > 0) {
+                            data.elements.forEach(element => {
+                                let coords;
+                                if (element.lat && element.lon) {
+                                    coords = [element.lat, element.lon];
+                                } else if (element.center) {
+                                    coords = [element.center.lat, element.center.lon];
+                                }
+
+                                if (coords) {
+                                    const tags = element.tags || {};
+                                    const name = tags.name || 'Без названия';
+                                    const subtype = tags.military || tags.landuse || tags.building || tags.healthcare || tags.amenity || type;
+
+                                    allResults.push({
+                                        type: type,
+                                        name: name,
+                                        subtype: subtype,
+                                        coords: coords,
+                                        source: 'OpenStreetMap',
+                                        id: 'osm_' + element.id
+                                    });
+                                    count++;
+                                }
+                            });
+                        }
+
+                        return count;
+                    }
+                } catch (error) {
+                    console.warn(`Сервер ${server} не сработал:`, error.message);
+                    continue;
+                }
+            }
+
+            throw new Error('Все Overpass серверы недоступны');
+        }
+
+        async function testSimpleQuery() {
+            const lat = parseFloat(document.getElementById('latitude').value) || 55.7558;
+            const lon = parseFloat(document.getElementById('longitude').value) || 37.6173;
+            const radius = parseFloat(document.getElementById('radius').value) || 10;
+            const radiusMeters = radius * 1000;
+
+            addStatus('🧪 Тестовый запрос (все объекты)...', 'pending');
+
+            try {
+                const query = `
+                    [out:json][timeout:90];
+                    (
+                        node(around:${radiusMeters},${lat},${lon});
+                        way(around:${radiusMeters},${lat},${lon});
+                    );
+                    out center;
+                `;
+
+                for (const server of OVERPASS_SERVERS) {
+                    try {
+                        const response = await fetchWithRetry(server, {
+                            method: 'POST',
+                            body: query,
+                            headers: {
+                                'Content-Type': 'text/plain; charset=utf-8'
+                            }
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            addStatus(`✅ Найдено ${data.elements?.length || 0} объектов`, 'success');
+
+                            if (data.elements && data.elements.length > 0) {
+                                clearResults();
+
+                                const testResults = [];
+                                const limit = Math.min(20, data.elements.length);
+
+                                for (let i = 0; i < limit; i++) {
+                                    const element = data.elements[i];
+                                    let coords;
+                                    if (element.lat && element.lon) {
+                                        coords = [element.lat, element.lon];
+                                    } else if (element.center) {
+                                        coords = [element.center.lat, element.center.lon];
+                                    }
+
+                                    if (coords) {
+                                        const tags = element.tags || {};
+                                        const name = tags.name || 'Без названия';
+                                        const type = element.type || 'unknown';
+
+                                        testResults.push({
+                                            type: 'military',
+                                            name: name + ` (${type})`,
+                                            subtype: 'Тестовый объект',
+                                            coords: coords,
+                                            source: 'Тестовый запрос',
+                                            id: 'test_' + i
+                                        });
+                                    }
+                                }
+
+                                displayResults(testResults);
+                                addStatus(`🎉 Отображено ${testResults.length} тестовых объектов`, 'success');
+                            }
+                            return;
+                        }
+                    } catch (error) {
+                        console.warn(`Сервер ${server}: ${error.message}`);
+                        continue;
+                    }
+                }
+
+                addStatus('❌ Все серверы недоступны', 'error');
+            } catch (error) {
+                console.error('Ошибка теста:', error);
+                addStatus(`❌ Ошибка теста: ${error.message}`, 'error');
+            }
+        }
+
+        async function searchObjects() {
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lon = parseFloat(document.getElementById('longitude').value);
+            const radius = parseFloat(document.getElementById('radius').value);
+            const filterMilitary = document.getElementById('filterMilitary').checked;
+            const filterHospital = document.getElementById('filterHospital').checked;
+
+            if (!lat || !lon || !radius) {
+                alert('Пожалуйста, заполните все поля');
+                return;
+            }
+
+            const searchBtn = document.getElementById('searchBtn');
+            searchBtn.disabled = true;
+            searchBtn.textContent = '⏳ Поиск...';
+
+            clearResults();
+            document.getElementById('statusList').innerHTML = '';
+            addSearchMarker(lat, lon, radius);
+
+            allResults = [];
+
+            try {
+                if (filterMilitary) {
+                    addStatus('📡 Поиск военных объектов...', 'pending');
+                    await sleep(500);
+                    const count = await searchOverpassAPI(lat, lon, radius, 'military');
+                    addStatus(`✅ Военные объекты: ${count} найдено`, 'success');
+                    await sleep(1000);
+                }
+
+                if (filterHospital) {
+                    addStatus('📡 Поиск госпиталей...', 'pending');
+                    await sleep(500);
+                    const count = await searchOverpassAPI(lat, lon, radius, 'hospital');
+                    addStatus(`✅ Госпитали: ${count} найдено`, 'success');
+                }
+
+                displayResults(allResults);
+                addStatus(`🎉 Всего найдено: ${allResults.length} объектов`, 'success');
+            } catch (error) {
+                console.error('Ошибка при поиске:', error);
+                addStatus(`❌ Ошибка: ${error.message}`, 'error');
+                addStatus('💡 Попробуйте уменьшить радиус или повторить позже', 'pending');
+            }
+
+            searchBtn.disabled = false;
+            searchBtn.textContent = '🔍 Найти объекты';
+        }
+
+        function addSearchMarker(lat, lon, radius) {
+            if (searchMarker) {
+                map.removeLayer(searchMarker);
+            }
+            if (searchCircle) {
+                map.removeLayer(searchCircle);
+            }
+
+            const searchIcon = L.divIcon({
+                className: 'search-marker',
+                html: '<div style="background: #2196F3; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+
+            searchMarker = L.marker([lat, lon], { icon: searchIcon }).addTo(map);
+            searchMarker.bindPopup('<b>Центр поиска</b><br>Координаты: ' + lat.toFixed(4) + ', ' + lon.toFixed(4));
+
+            searchCircle = L.circle([lat, lon], {
+                color: '#2196F3',
+                fillColor: '#2196F3',
+                fillOpacity: 0.1,
+                radius: radius * 1000
+            }).addTo(map);
+
+            map.setView([lat, lon], Math.max(10, 14 - Math.floor(radius / 10)));
+        }
+
+        function displayResults(results) {
+            const resultsList = document.getElementById('resultsList');
+            const resultCount = document.getElementById('resultCount');
+
+            resultCount.textContent = results.length;
+
+            if (results.length === 0) {
+                resultsList.innerHTML = '<p style="color: #888; text-align: center;">Объекты не найдены</p>';
+                return;
+            }
+
+            resultsList.innerHTML = '';
+
+            const militaryResults = results.filter(r => r.type === 'military');
+            const hospitalResults = results.filter(r => r.type === 'hospital');
+
+            [...militaryResults, ...hospitalResults].forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.innerHTML = `
+                    <div class="type">${result.source} | ${result.subtype}</div>
+                    <div class="name">${result.name}</div>
+                `;
+
+                resultItem.onclick = () => {
+                    map.setView(result.coords, 15);
+                    const marker = markers.find(m => m.resultId === result.id);
+                    if (marker) {
+                        marker.openPopup();
+                    }
+                };
+
+                resultsList.appendChild(resultItem);
+            });
+
+            results.forEach(result => {
+                const color = result.type === 'military' ? '#e94560' : '#4CAF50';
+
+                const markerIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background: ${color}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                });
+
+                const marker = L.marker(result.coords, { icon: markerIcon }).addTo(map);
+                marker.bindPopup(`
+                    <b>${result.name}</b><br>
+                    <small>Тип: ${result.subtype}</small><br>
+                    <small>Источник: ${result.source}</small>
+                `);
+                marker.resultId = result.id;
+                markers.push(marker);
+            });
+        }
+
+        function clearResults() {
+            markers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            markers = [];
+            allResults = [];
+            document.getElementById('resultsList').innerHTML = '';
+            document.getElementById('resultCount').textContent = '0';
+            document.getElementById('statusBox').style.display = 'none';
+        }
+
+        initMap();
+    </script>
+</body>
+</html>
