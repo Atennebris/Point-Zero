@@ -226,23 +226,28 @@ function displayResults(results) {
     const resultsList = document.getElementById('resultsList');
     const resultCount = document.getElementById('resultCount');
 
-    resultCount.textContent = results.length;
+    // Применяем расширенные фильтры
+    const filteredResults = window.Filters.applyAdvancedFilters(results);
 
-    if (results.length === 0) {
+    resultCount.textContent = filteredResults.length;
+
+    if (filteredResults.length === 0) {
         resultsList.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No objects found</p>';
         document.getElementById('exportBtn').style.display = 'none';
         document.getElementById('shareSection').style.display = 'none';
+        window.Filters.updateHeatmapToggleVisibility(false);
         return;
     }
 
-    // Показать кнопку экспорта и share секцию
+    // Показать кнопку экспорта, share секцию и heatmap toggle
     document.getElementById('exportBtn').style.display = 'block';
     document.getElementById('shareSection').style.display = 'block';
+    window.Filters.updateHeatmapToggleVisibility(true);
 
     resultsList.innerHTML = '';
 
-    const militaryResults = results.filter(r => r.type === 'military');
-    const hospitalResults = results.filter(r => r.type === 'hospital');
+    const militaryResults = filteredResults.filter(r => r.type === 'military');
+    const hospitalResults = filteredResults.filter(r => r.type === 'hospital');
 
     [...militaryResults, ...hospitalResults].forEach(result => {
         const resultItem = document.createElement('div');
@@ -276,7 +281,7 @@ function displayResults(results) {
     });
 
     // Создаем Marker Cluster Group если больше 50 результатов
-    const usesClustering = results.length > 50;
+    const usesClustering = filteredResults.length > 50;
 
     if (usesClustering && typeof L.markerClusterGroup !== 'undefined') {
         // Создаем кластер группу
@@ -306,10 +311,10 @@ function displayResults(results) {
             }
         });
 
-        console.log(`🗂️ Using marker clustering for ${results.length} results`);
+        console.log(`🗂️ Using marker clustering for ${filteredResults.length} results`);
     }
 
-    results.forEach(result => {
+    filteredResults.forEach(result => {
         const color = result.type === 'military' ? '#e94560' : '#4CAF50';
 
         const markerIcon = L.divIcon({

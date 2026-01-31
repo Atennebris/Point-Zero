@@ -21,7 +21,7 @@ async function searchOverpassAPI(lat, lon, radius, type) {
                 way["landuse"="military"](around:${radiusMeters},${lat},${lon});
                 relation["landuse"="military"](around:${radiusMeters},${lat},${lon});
             );
-            out center;
+            out center meta;
         `;
     } else if (type === 'hospital') {
         query = `
@@ -36,7 +36,7 @@ async function searchOverpassAPI(lat, lon, radius, type) {
                 node["building"="hospital"](around:${radiusMeters},${lat},${lon});
                 way["building"="hospital"](around:${radiusMeters},${lat},${lon});
             );
-            out center;
+            out center meta;
         `;
     }
 
@@ -72,13 +72,28 @@ async function searchOverpassAPI(lat, lon, radius, type) {
                             const name = tags.name || 'Unnamed';
                             const subtype = tags.military || tags.landuse || tags.building || tags.healthcare || tags.amenity || type;
 
+                            // Извлечение timestamp для фильтра по дате
+                            const timestamp = element.timestamp || null;
+
+                            // Попытка вычислить площадь (только для ways с bounds)
+                            let area = undefined;
+                            if (element.type === 'way' && element.bounds) {
+                                // Примерный расчет площади по bounding box
+                                const latDiff = element.bounds.maxlat - element.bounds.minlat;
+                                const lonDiff = element.bounds.maxlon - element.bounds.minlon;
+                                // Приблизительная площадь в м² (упрощенный расчет)
+                                area = Math.abs(latDiff * lonDiff * 111000 * 111000);
+                            }
+
                             window.AppState.allResults.push({
                                 type: type,
                                 name: name,
                                 subtype: subtype,
                                 coords: coords,
                                 source: 'OpenStreetMap',
-                                id: 'osm_' + element.id
+                                id: 'osm_' + element.id,
+                                timestamp: timestamp,
+                                area: area
                             });
                             count++;
                         }

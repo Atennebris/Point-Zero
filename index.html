@@ -68,6 +68,38 @@
                 </div>
             </div>
 
+            <!-- Advanced Filters -->
+            <div class="history">
+                <h3 onclick="window.Filters.toggleAdvancedFilters()">
+                    <span>⚙️ Advanced Filters</span>
+                    <span id="advancedFiltersToggleIcon">▼</span>
+                </h3>
+                <div class="history-list" id="advancedFiltersList" style="display: none;">
+                    <div class="filter-item">
+                        <input type="checkbox" id="filterNamedOnly">
+                        <label for="filterNamedOnly">Named Objects Only</label>
+                    </div>
+                    <div class="filter-item" style="margin-top: 10px;">
+                        <input type="checkbox" id="filterBySize">
+                        <label for="filterBySize">Minimum Size Filter</label>
+                    </div>
+                    <div class="form-group" style="margin-top: 5px; margin-left: 20px;">
+                        <label style="font-size: 11px;">Min Area (m²)</label>
+                        <input type="number" id="minArea" placeholder="e.g.: 100" min="0" step="10" value="100" disabled>
+                    </div>
+                    <div class="filter-item" style="margin-top: 10px;">
+                        <input type="checkbox" id="filterByDate">
+                        <label for="filterByDate">Updated After</label>
+                    </div>
+                    <div class="form-group" style="margin-top: 5px; margin-left: 20px;">
+                        <input type="date" id="minDate" disabled>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 10px; color: var(--text-secondary); padding: 8px; background: var(--bg-primary); border-radius: 5px;">
+                        <strong>💡 Note:</strong> Advanced filters work only with OpenStreetMap data. Size and date filters may reduce results significantly.
+                    </div>
+                </div>
+            </div>
+
             <!-- Источники данных -->
             <div class="filters" style="margin-top: 10px;">
                 <h3>🌐 Data Sources</h3>
@@ -153,6 +185,13 @@
 
             <div class="results">
                 <h3>📊 Results: <span id="resultCount">0</span></h3>
+
+                <!-- Heatmap Toggle -->
+                <div class="filter-item" id="heatmapToggleContainer" style="display: none; margin-bottom: 10px; padding: 10px; background: var(--bg-primary); border-radius: 5px;">
+                    <input type="checkbox" id="heatmapToggle" onchange="window.Filters.toggleHeatmap()">
+                    <label for="heatmapToggle">🔥 Show Heatmap</label>
+                </div>
+
                 <div id="resultsList"></div>
 
                 <!-- Кнопка экспорта -->
@@ -214,6 +253,9 @@
     <!-- Leaflet MarkerCluster JS -->
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
+    <!-- Leaflet.heat for Heatmap -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
     <!-- JSZip for ZIP export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
@@ -226,6 +268,7 @@
     <script src="js/datasources.js"></script>
     <script src="js/history.js"></script>
     <script src="js/share.js"></script>
+    <script src="js/filters.js"></script>
     <script src="js/api.js"></script>
     <script src="js/export.js"></script>
     <script src="js/map.js"></script>
