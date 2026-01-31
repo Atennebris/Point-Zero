@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Military & Medical Facilities Finder</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* CSS переменные для темной темы (по умолчанию) */
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --text-primary: #eee;
+            --text-secondary: #888;
+            --accent: #e94560;
+            --accent-hover: #c73e54;
+            --border: #0f3460;
+            --error: #e94560;
+            --success: #4CAF50;
+            --warning: #FF9800;
+        }
+
+        /* CSS переменные для светлой темы */
+        :root.light-theme {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #e8e8e8;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --accent: #d32f2f;
+            --accent-hover: #b71c1c;
+            --border: #ddd;
+            --error: #d32f2f;
+            --success: #388e3c;
+            --warning: #f57c00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 350px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-right: 2px solid var(--border);
+            overflow-y: auto;
+        }
+
+        .sidebar h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Кнопка переключения темы */
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            width: auto;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent);
+            transform: scale(1.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Стили валидации */
+        .form-group input.input-error {
+            border-color: var(--error) !important;
+            box-shadow: 0 0 5px rgba(233, 69, 96, 0.5);
+        }
+
+        .validation-message {
+            font-size: 11px;
+            color: var(--error);
+            margin-top: 5px;
+            display: none;
+        }
+
+        .validation-message.show {
+            display: block;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+        }
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        button.test-btn {
+            background: var(--bg-tertiary);
+            font-size: 14px;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        button.test-btn:hover {
+            background: var(--border);
+        }
+
+        button.secondary-btn {
+            background: var(--bg-tertiary);
+            margin-top: 10px;
+        }
+
+        button.secondary-btn:hover {
+            background: var(--border);
+        }
+
+        .filters {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border-radius: 5px;
+        }
+
+        .filters h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .filter-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .filter-item label {
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border-radius: 5px;
+        }
+
+        .results h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .result-item {
+            padding: 10px;
+            background: var(--bg-primary);
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .result-item:hover {
+            background: var(--bg-secondary);
+        }
+
+        .result-item .type {
+            font-size: 12px;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .result-item .name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border-radius: 5px;
+        }
+
+        .legend h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .legend-item .marker {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .legend-item .marker.military {
+            background: #e94560;
+        }
+
+        .legend-item .marker.hospital {
+            background: #4CAF50;
+        }
+
+        #map {
+            flex: 1;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--accent);
+        }
+
+        .info-box {
+            padding: 10px;
+            margin-top: 10px;
+            background: var(--bg-primary);
+            border-left: 3px solid var(--accent);
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .status {
+            padding: 10px;
+            margin-top: 10px;
+            background: var(--bg-primary);
+            border-radius: 5px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .status-item {
+            padding: 3px 0;
+        }
+
+        .status-item.success {
+            color: var(--success);
+        }
+
+        .status-item.error {
+            color: var(--error);
+        }
+
+        .status-item.pending {
+            color: var(--warning);
+        }
+
+        /* Модальное окно экспорта */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+        }
+
+        .modal-header {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .modal-close:hover {
+            color: var(--accent);
+        }
+
+        .export-format-selector {
+            margin-bottom: 20px;
+        }
+
+        .export-format-selector label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .export-format-selector select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        /* История поисков */
+        .history {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border-radius: 5px;
+        }
+
+        .history h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: var(--accent);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .history-list.show {
+            display: block;
+        }
+
+        .history-item {
+            padding: 8px;
+            background: var(--bg-primary);
+            border-radius: 5px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        .history-item:hover {
+            background: var(--bg-secondary);
+        }
+
+        .history-item .time {
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        /* Share секция */
+        .share-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border-radius: 5px;
+        }
+
+        .share-section h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .share-url-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .share-url-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        .copy-btn {
+            padding: 8px 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>
+                <span>🎯 Search Objects</span>
+                <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
+            </h1>
+
+            <div class="form-group">
+                <label>Latitude</label>
+                <input type="number" id="latitude" placeholder="e.g.: 55.7558" step="0.0001" value="55.7558">
+                <div class="validation-message" id="latError"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Longitude</label>
+                <input type="number" id="longitude" placeholder="e.g.: 37.6173" step="0.0001" value="37.6173">
+                <div class="validation-message" id="lonError"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Search Radius (km)</label>
+                <input type="number" id="radius" placeholder="e.g.: 10" min="0.001" max="10000" step="0.001" value="20">
+                <div class="validation-message" id="radiusError"></div>
+            </div>
+
+            <button id="searchBtn" onclick="searchObjects()">🔍 Find Objects</button>
+
+            <button onclick="setTestLocation()" class="test-btn">
+                🧪 Test: Washington DC (Pentagon)
+            </button>
+            <button onclick="setMoscowLocation()" class="test-btn">
+                🏛️ Test: Moscow
+            </button>
+            <button onclick="setBerlinLocation()" class="test-btn">
+                🇩🇪 Test: Berlin
+            </button>
+            <button onclick="testSimpleQuery()" class="test-btn" style="background: #4CAF50;">
+                🧪 Test Query
+            </button>
+
+            <div class="filters">
+                <h3>🔧 Filters</h3>
+                <div class="filter-item">
+                    <input type="checkbox" id="filterMilitary" checked>
+                    <label for="filterMilitary">Military Facilities</label>
+                </div>
+                <div class="filter-item">
+                    <input type="checkbox" id="filterHospital" checked>
+                    <label for="filterHospital">Military Hospitals</label>
+                </div>
+            </div>
+
+            <!-- Источники данных -->
+            <div class="filters" style="margin-top: 10px;">
+                <h3>🌐 Data Sources</h3>
+                <div class="filter-item">
+                    <input type="checkbox" id="sourceOSM" checked>
+                    <label for="sourceOSM">OpenStreetMap (Overpass API)</label>
+                </div>
+                <div class="filter-item">
+                    <input type="checkbox" id="sourceGeoNames">
+                    <label for="sourceGeoNames">GeoNames API</label>
+                </div>
+                <div class="filter-item">
+                    <input type="checkbox" id="sourceWikidata">
+                    <label for="sourceWikidata">Wikidata API</label>
+                </div>
+            </div>
+
+            <!-- API Credentials -->
+            <div class="history">
+                <h3 onclick="toggleCredentials()">
+                    <span>🔑 API Credentials</span>
+                    <span id="credentialsToggleIcon">▼</span>
+                </h3>
+                <div class="history-list" id="credentialsList">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-size: 12px;">GeoNames Username</label>
+                        <input type="text" id="geonamesUsername" placeholder="Enter your username" style="padding: 8px; font-size: 12px;">
+                        <button onclick="testGeoNamesConnection()" class="test-btn" style="margin-top: 8px; width: 100%; padding: 6px; font-size: 11px;">
+                            🧪 Test GeoNames Connection
+                        </button>
+                        <div style="margin-top: 5px; font-size: 10px; color: var(--text-secondary);">
+                            <strong>Setup:</strong><br>
+                            1. Register at <a href="http://www.geonames.org/login" target="_blank" style="color: var(--accent);">geonames.org</a><br>
+                            2. Confirm email<br>
+                            3. Enable "Free Web Services" in <a href="http://www.geonames.org/manageaccount" target="_blank" style="color: var(--accent);">account settings</a><br>
+                            4. Wait 5-10 minutes after activation<br>
+                            <strong style="color: var(--warning);">⚠️ Username is case-sensitive!</strong>
+                        </div>
+                    </div>
+                    <!-- Placeholder для будущих API ключей -->
+                    <div style="padding: 8px; background: var(--bg-primary); border-radius: 5px; font-size: 11px; color: var(--text-secondary);">
+                        <strong>💡 Info:</strong> OpenStreetMap and Wikidata don't require API keys<br><br>
+                        <strong>📊 Data Coverage:</strong><br>
+                        • <strong>OSM</strong> - Best for military facilities<br>
+                        • <strong>GeoNames</strong> - Good global coverage<br>
+                        • <strong>Wikidata</strong> - Limited military data, good for hospitals
+                    </div>
+                </div>
+            </div>
+
+            <!-- История поисков -->
+            <div class="history">
+                <h3 onclick="toggleHistory()">
+                    <span>📜 Search History</span>
+                    <span id="historyToggleIcon">▼</span>
+                </h3>
+                <div class="history-list" id="historyList"></div>
+                <button onclick="clearHistory()" class="secondary-btn" style="margin-top: 10px; display: none;" id="clearHistoryBtn">
+                    🗑️ Clear History
+                </button>
+            </div>
+
+            <div class="status" id="statusBox" style="display: none;">
+                <h3 style="color: var(--accent); margin-bottom: 10px;">📋 Status</h3>
+                <div id="statusList"></div>
+            </div>
+
+            <div class="legend">
+                <h3>📍 Legend</h3>
+                <div class="legend-item">
+                    <div class="marker military"></div>
+                    <span>Military Facilities</span>
+                </div>
+                <div class="legend-item">
+                    <div class="marker hospital"></div>
+                    <span>Military Hospitals</span>
+                </div>
+                <div class="legend-item">
+                    <div class="marker" style="background: #2196F3;"></div>
+                    <span>Your Position</span>
+                </div>
+            </div>
+
+            <div class="results">
+                <h3>📊 Results: <span id="resultCount">0</span></h3>
+                <div id="resultsList"></div>
+
+                <!-- Кнопка экспорта -->
+                <button onclick="openExportModal()" class="secondary-btn" id="exportBtn" style="display: none; margin-top: 15px;">
+                    📥 Export Results
+                </button>
+            </div>
+
+            <!-- Share секция -->
+            <div class="share-section" id="shareSection" style="display: none;">
+                <h3>🔗 Share Search</h3>
+                <div class="share-url-container">
+                    <input type="text" class="share-url-input" id="shareUrl" readonly>
+                    <button class="copy-btn" onclick="copyShareLink()" id="copyBtn">📋 Copy</button>
+                </div>
+            </div>
+
+            <div class="info-box" id="activeSourcesBox">
+                <strong>🔍 Active Data Sources:</strong><br>
+                <span id="activeSourcesList">• OpenStreetMap (Overpass API)</span>
+            </div>
+        </div>
+
+        <div id="map"></div>
+    </div>
+
+    <!-- Модальное окно экспорта -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeExportModal()">&times;</span>
+            <h2 class="modal-header">📥 Export Results</h2>
+
+            <div class="export-format-selector">
+                <label>Select Format:</label>
+                <select id="exportFormat">
+                    <option value="csv">CSV (Excel/Sheets)</option>
+                    <option value="json">JSON (Programming)</option>
+                    <option value="geojson">GeoJSON (GIS)</option>
+                    <option value="html">HTML (Report)</option>
+                    <option value="txt">TXT (Plain Text)</option>
+                    <option value="md">Markdown (Documentation)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>File Name:</label>
+                <input type="text" id="exportFilename" placeholder="results" value="point_zero_results">
+            </div>
+
+            <button onclick="executeExport()">💾 Download</button>
+            <button onclick="closeExportModal()" class="secondary-btn">❌ Cancel</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let markers = [];
+        let searchMarker;
+        let searchCircle;
+        let allResults = [];
+
+        const OVERPASS_SERVERS = [
+            'https://overpass-api.de/api/interpreter',
+            'https://overpass.kumi.systems/api/interpreter',
+            'https://overpass.nchc.org.tw/api/interpreter'
+        ];
+
+        function initMap() {
+            map = L.map('map').setView([55.7558, 37.6173], 10);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            map.on('click', function(e) {
+                document.getElementById('latitude').value = e.latlng.lat.toFixed(4);
+                document.getElementById('longitude').value = e.latlng.lng.toFixed(4);
+            });
+
+            // Загрузка темы и истории при инициализации
+            loadTheme();
+            loadFromUrlParams();
+            renderHistory();
+            loadCredentials();
+            setupValidation();
+            setupDataSourceListeners();
+            setupCredentialsListeners();
+        }
+
+        // ========== DARK MODE ==========
+        function loadTheme() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            if (theme === 'light') {
+                document.documentElement.classList.add('light-theme');
+                document.getElementById('themeToggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            const root = document.documentElement;
+            const themeToggle = document.getElementById('themeToggle');
+
+            if (root.classList.contains('light-theme')) {
+                root.classList.remove('light-theme');
+                themeToggle.textContent = '🌙';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                root.classList.add('light-theme');
+                themeToggle.textContent = '☀️';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // ========== DATA SOURCES ==========
+        function setupDataSourceListeners() {
+            const sources = ['sourceOSM', 'sourceGeoNames', 'sourceWikidata'];
+            sources.forEach(sourceId => {
+                document.getElementById(sourceId).addEventListener('change', updateActiveSourcesList);
+            });
+            updateActiveSourcesList();
+        }
+
+        function updateActiveSourcesList() {
+            const activeSources = [];
+
+            if (document.getElementById('sourceOSM').checked) {
+                activeSources.push('• OpenStreetMap (Overpass API)');
+            }
+            if (document.getElementById('sourceGeoNames').checked) {
+                activeSources.push('• GeoNames API');
+            }
+            if (document.getElementById('sourceWikidata').checked) {
+                activeSources.push('• Wikidata API');
+            }
+
+            const list = document.getElementById('activeSourcesList');
+            if (activeSources.length === 0) {
+                list.innerHTML = '<span style="color: var(--warning);">⚠️ No sources selected!</span>';
+            } else {
+                list.innerHTML = activeSources.join('<br>');
+            }
+        }
+
+        // ========== ВАЛИДАЦИЯ КООРДИНАТ ==========
+        function setupValidation() {
+            const latInput = document.getElementById('latitude');
+            const lonInput = document.getElementById('longitude');
+            const radiusInput = document.getElementById('radius');
+
+            latInput.addEventListener('input', () => validateLatitude());
+            latInput.addEventListener('blur', () => validateLatitude());
+            lonInput.addEventListener('input', () => validateLongitude());
+            lonInput.addEventListener('blur', () => validateLongitude());
+            radiusInput.addEventListener('input', () => validateRadius());
+            radiusInput.addEventListener('blur', () => validateRadius());
+        }
+
+        function validateLatitude() {
+            const input = document.getElementById('latitude');
+            const error = document.getElementById('latError');
+            const value = parseFloat(input.value);
+
+            if (isNaN(value) || value < -90 || value > 90) {
+                input.classList.add('input-error');
+                error.textContent = 'Latitude must be between -90 and 90';
+                error.classList.add('show');
+                return false;
+            } else {
+                input.classList.remove('input-error');
+                error.classList.remove('show');
+                return true;
+            }
+        }
+
+        function validateLongitude() {
+            const input = document.getElementById('longitude');
+            const error = document.getElementById('lonError');
+            const value = parseFloat(input.value);
+
+            if (isNaN(value) || value < -180 || value > 180) {
+                input.classList.add('input-error');
+                error.textContent = 'Longitude must be between -180 and 180';
+                error.classList.add('show');
+                return false;
+            } else {
+                input.classList.remove('input-error');
+                error.classList.remove('show');
+                return true;
+            }
+        }
+
+        function validateRadius() {
+            const input = document.getElementById('radius');
+            const error = document.getElementById('radiusError');
+            const value = parseFloat(input.value);
+
+            if (isNaN(value) || value < 0.001 || value > 10000) {
+                input.classList.add('input-error');
+                error.textContent = 'Radius must be between 0.001 km (1m) and 10,000 km';
+                error.classList.add('show');
+                return false;
+            } else {
+                input.classList.remove('input-error');
+                error.classList.remove('show');
+                return true;
+            }
+        }
+
+        function validateAllInputs() {
+            const latValid = validateLatitude();
+            const lonValid = validateLongitude();
+            const radiusValid = validateRadius();
+            return latValid && lonValid && radiusValid;
+        }
+
+        function setTestLocation() {
+            document.getElementById('latitude').value = 38.8707;
+            document.getElementById('longitude').value = -77.0559;
+            document.getElementById('radius').value = 10;
+            map.setView([38.8707, -77.0559], 12);
+            addStatus('🇺🇸 Pentagon coordinates set', 'pending');
+        }
+
+        function setMoscowLocation() {
+            document.getElementById('latitude').value = 55.7558;
+            document.getElementById('longitude').value = 37.6173;
+            document.getElementById('radius').value = 20;
+            map.setView([55.7558, 37.6173], 10);
+            addStatus('🏛️ Moscow coordinates set', 'pending');
+        }
+
+        function setBerlinLocation() {
+            document.getElementById('latitude').value = 52.5200;
+            document.getElementById('longitude').value = 13.4050;
+            document.getElementById('radius').value = 20;
+            map.setView([52.5200, 13.4050], 10);
+            addStatus('🇩🇪 Berlin coordinates set', 'pending');
+        }
+
+        function addStatus(message, type = 'pending') {
+            const statusBox = document.getElementById('statusBox');
+            const statusList = document.getElementById('statusList');
+            statusBox.style.display = 'block';
+
+            const statusItem = document.createElement('div');
+            statusItem.className = `status-item ${type}`;
+            statusItem.textContent = message;
+            statusList.appendChild(statusItem);
+        }
+
+        async function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function fetchWithRetry(url, options, retries = 3) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return response;
+                    }
+                    if (response.status === 504 || response.status === 502) {
+                        console.log(`Retry ${i + 1}/${retries} after ${i * 2} seconds...`);
+                        await sleep((i + 1) * 2000);
+                        continue;
+                    }
+                    return response;
+                } catch (error) {
+                    console.error(`Attempt ${i + 1} failed:`, error);
+                    if (i < retries - 1) {
+                        await sleep((i + 1) * 2000);
+                    }
+                }
+            }
+            throw new Error('Max retries exceeded');
+        }
+
+        async function searchOverpassAPI(lat, lon, radius, type) {
+            const radiusMeters = radius * 1000;
+            let query = '';
+
+            if (type === 'military') {
+                query = `
+                    [out:json][timeout:90];
+                    (
+                        node["building"="military"](around:${radiusMeters},${lat},${lon});
+                        way["building"="military"](around:${radiusMeters},${lat},${lon});
+                        relation["building"="military"](around:${radiusMeters},${lat},${lon});
+                        node["military"](around:${radiusMeters},${lat},${lon});
+                        way["military"](around:${radiusMeters},${lat},${lon});
+                        relation["military"](around:${radiusMeters},${lat},${lon});
+                        node["landuse"="military"](around:${radiusMeters},${lat},${lon});
+                        way["landuse"="military"](around:${radiusMeters},${lat},${lon});
+                        relation["landuse"="military"](around:${radiusMeters},${lat},${lon});
+                    );
+                    out center;
+                `;
+            } else if (type === 'hospital') {
+                query = `
+                    [out:json][timeout:90];
+                    (
+                        node["amenity"="hospital"](around:${radiusMeters},${lat},${lon});
+                        way["amenity"="hospital"](around:${radiusMeters},${lat},${lon});
+                        relation["amenity"="hospital"](around:${radiusMeters},${lat},${lon});
+                        node["healthcare"="hospital"](around:${radiusMeters},${lat},${lon});
+                        way["healthcare"="hospital"](around:${radiusMeters},${lat},${lon});
+                        relation["healthcare"="hospital"](around:${radiusMeters},${lat},${lon});
+                        node["building"="hospital"](around:${radiusMeters},${lat},${lon});
+                        way["building"="hospital"](around:${radiusMeters},${lat},${lon});
+                    );
+                    out center;
+                `;
+            }
+
+            console.log(`Searching ${type} via Overpass API...`);
+
+            for (const server of OVERPASS_SERVERS) {
+                try {
+                    const response = await fetchWithRetry(server, {
+                        method: 'POST',
+                        body: query,
+                        headers: {
+                            'Content-Type': 'text/plain; charset=utf-8'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log(`Success from server ${server}`);
+                        console.log(`Found ${data.elements?.length || 0} elements`);
+
+                        let count = 0;
+                        if (data.elements && data.elements.length > 0) {
+                            data.elements.forEach(element => {
+                                let coords;
+                                if (element.lat && element.lon) {
+                                    coords = [element.lat, element.lon];
+                                } else if (element.center) {
+                                    coords = [element.center.lat, element.center.lon];
+                                }
+
+                                if (coords) {
+                                    const tags = element.tags || {};
+                                    const name = tags.name || 'Unnamed';
+                                    const subtype = tags.military || tags.landuse || tags.building || tags.healthcare || tags.amenity || type;
+
+                                    allResults.push({
+                                        type: type,
+                                        name: name,
+                                        subtype: subtype,
+                                        coords: coords,
+                                        source: 'OpenStreetMap',
+                                        id: 'osm_' + element.id
+                                    });
+                                    count++;
+                                }
+                            });
+                        }
+
+                        return count;
+                    }
+                } catch (error) {
+                    console.warn(`Server ${server} failed:`, error.message);
+                    continue;
+                }
+            }
+
+            throw new Error('All Overpass servers unavailable');
+        }
+
+        // ========== GEONAMES API ==========
+        async function searchGeoNamesAPI(lat, lon, radius, type) {
+            // Получение username из input
+            const username = document.getElementById('geonamesUsername').value.trim();
+
+            if (!username) {
+                addStatus('⚠️ GeoNames: Username not provided', 'error');
+                return 0;
+            }
+
+            const featureCode = type === 'military' ? 'MLTY' : 'HSP';
+            const url = `http://api.geonames.org/findNearbyJSON?lat=${lat}&lng=${lon}&radius=${radius}&featureCode=${featureCode}&maxRows=100&username=${username}`;
+
+            console.log(`Searching ${type} via GeoNames API...`);
+            console.log(`GeoNames URL: ${url}`);
+
+            try {
+                const response = await fetch(url);
+
+                console.log('===== GeoNames DEBUG =====');
+                console.log('Response status:', response.status);
+                console.log('Response statusText:', response.statusText);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+                // Читаем body для детального логирования
+                const responseText = await response.text();
+                console.log('Response body:', responseText);
+
+                // Парсим JSON из текста
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                    console.log('Parsed JSON:', data);
+                } catch (e) {
+                    console.error('Failed to parse JSON:', e);
+                    console.error('Raw response:', responseText);
+                }
+
+                // Проверка HTTP статуса
+                if (response.status === 401) {
+                    const errorMsg = data?.status?.message || '401 Unauthorized - Account not activated or invalid username';
+                    console.error('GeoNames 401 Error:', errorMsg);
+                    console.error('Full response:', data);
+                    addStatus(`⚠️ GeoNames: ${errorMsg}`, 'error');
+                    return 0;
+                }
+
+                if (!response.ok) {
+                    const errorMsg = `GeoNames HTTP ${response.status}: ${response.statusText}`;
+                    console.error(errorMsg);
+                    addStatus(`❌ ${errorMsg}`, 'error');
+                    return 0;
+                }
+
+                if (data.geonames && data.geonames.length > 0) {
+                    let count = 0;
+                    data.geonames.forEach(place => {
+                        allResults.push({
+                            type: type,
+                            name: place.name || place.toponymName || 'Unnamed',
+                            subtype: place.fcodeName || type,
+                            coords: [parseFloat(place.lat), parseFloat(place.lng)],
+                            source: 'GeoNames',
+                            id: 'geonames_' + place.geonameId
+                        });
+                        count++;
+                    });
+                    return count;
+                } else if (data.status) {
+                    console.warn('GeoNames API error:', data.status.message);
+                    addStatus(`⚠️ GeoNames: ${data.status.message}`, 'error');
+                    return 0;
+                }
+                return 0;
+            } catch (error) {
+                console.error('GeoNames API error:', error);
+                addStatus(`❌ GeoNames API unavailable: ${error.message}`, 'error');
+                return 0;
+            }
+        }
+
+        // ========== WIKIDATA API ==========
+        async function searchWikidataAPI(lat, lon, radius, type) {
+            // Wikidata SPARQL endpoint
+            const endpoint = 'https://query.wikidata.org/sparql';
+
+            // SPARQL запрос для поиска военных объектов или госпиталей
+            let sparqlQuery;
+            if (type === 'military') {
+                // Расширенный запрос - ищем по нескольким критериям
+                sparqlQuery = `
+                    SELECT DISTINCT ?item ?itemLabel ?coord WHERE {
+                        SERVICE wikibase:around {
+                            ?item wdt:P625 ?coord.
+                            bd:serviceParam wikibase:center "Point(${lon} ${lat})"^^geo:wktLiteral.
+                            bd:serviceParam wikibase:radius "${radius}".
+                            bd:serviceParam wikibase:distance ?dist.
+                        }
+                        {
+                            # instance of: военные объекты
+                            ?item wdt:P31/wdt:P279* wd:Q245016.  # военная база
+                        } UNION {
+                            ?item wdt:P31/wdt:P279* wd:Q695793.  # казарма
+                        } UNION {
+                            ?item wdt:P31/wdt:P279* wd:Q1785071.  # военный аэродром
+                        } UNION {
+                            ?item wdt:P31/wdt:P279* wd:Q18691599.  # военное сооружение
+                        } UNION {
+                            ?item wdt:P31/wdt:P279* wd:Q744099.  # военный объект
+                        } UNION {
+                            # operator: вооруженные силы
+                            ?item wdt:P137 wd:Q9212.
+                        } UNION {
+                            # use: военная цель
+                            ?item wdt:P366 wd:Q245068.
+                        } UNION {
+                            # military branch
+                            ?item wdt:P241 ?militaryBranch.
+                        } UNION {
+                            # owned by: ministry of defense
+                            ?item wdt:P127/wdt:P31 wd:Q247952.
+                        }
+                        SERVICE wikibase:label { bd:serviceParam wikibase:language "en,ru". }
+                    }
+                    ORDER BY ?dist
+                    LIMIT 200
+                `;
+            } else {
+                sparqlQuery = `
+                    SELECT DISTINCT ?item ?itemLabel ?coord WHERE {
+                        SERVICE wikibase:around {
+                            ?item wdt:P625 ?coord.
+                            bd:serviceParam wikibase:center "Point(${lon} ${lat})"^^geo:wktLiteral.
+                            bd:serviceParam wikibase:radius "${radius}".
+                            bd:serviceParam wikibase:distance ?dist.
+                        }
+                        {
+                            ?item wdt:P31 wd:Q16917.  # больница
+                        } UNION {
+                            ?item wdt:P31 wd:Q1059324.  # военный госпиталь
+                        } UNION {
+                            ?item wdt:P31 wd:Q4260475.  # медицинское учреждение
+                        }
+                        SERVICE wikibase:label { bd:serviceParam wikibase:language "en,ru". }
+                    }
+                    ORDER BY ?dist
+                    LIMIT 100
+                `;
+            }
+
+            console.log(`Searching ${type} via Wikidata SPARQL:`, sparqlQuery);
+
+            try {
+                const response = await fetch(endpoint + '?query=' + encodeURIComponent(sparqlQuery), {
+                    headers: {
+                        'Accept': 'application/sparql-results+json',
+                        'User-Agent': 'Point-Zero-OSINT/1.0'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorMsg = `Wikidata HTTP ${response.status}: ${response.statusText}`;
+                    console.error(errorMsg);
+                    addStatus(`❌ ${errorMsg}`, 'error');
+                    return 0;
+                }
+
+                const data = await response.json();
+                console.log('Wikidata response:', data);
+
+                if (data.results && data.results.bindings && data.results.bindings.length > 0) {
+                    let count = 0;
+                    data.results.bindings.forEach(binding => {
+                        if (binding.coord && binding.coord.value) {
+                            // Парсинг координат из формата "Point(lon lat)"
+                            const coordMatch = binding.coord.value.match(/Point\(([-\d.]+) ([-\d.]+)\)/);
+                            if (coordMatch) {
+                                const coordLon = parseFloat(coordMatch[1]);
+                                const coordLat = parseFloat(coordMatch[2]);
+
+                                allResults.push({
+                                    type: type,
+                                    name: binding.itemLabel?.value || 'Unnamed',
+                                    subtype: 'Wikidata Entity',
+                                    coords: [coordLat, coordLon],
+                                    source: 'Wikidata',
+                                    id: 'wikidata_' + binding.item.value.split('/').pop()
+                                });
+                                count++;
+                            }
+                        }
+                    });
+                    console.log(`Wikidata returned ${count} results for ${type}`);
+                    return count;
+                } else {
+                    console.warn('Wikidata: No results in response');
+                    return 0;
+                }
+            } catch (error) {
+                console.error('Wikidata API error:', error);
+                addStatus(`❌ Wikidata API error: ${error.message}`, 'error');
+                return 0;
+            }
+        }
+
+        async function testSimpleQuery() {
+            const lat = parseFloat(document.getElementById('latitude').value) || 55.7558;
+            const lon = parseFloat(document.getElementById('longitude').value) || 37.6173;
+            const radius = parseFloat(document.getElementById('radius').value) || 10;
+            const radiusMeters = radius * 1000;
+
+            addStatus('🧪 Test query (all objects)...', 'pending');
+
+            try {
+                const query = `
+                    [out:json][timeout:90];
+                    (
+                        node(around:${radiusMeters},${lat},${lon});
+                        way(around:${radiusMeters},${lat},${lon});
+                    );
+                    out center;
+                `;
+
+                for (const server of OVERPASS_SERVERS) {
+                    try {
+                        const response = await fetchWithRetry(server, {
+                            method: 'POST',
+                            body: query,
+                            headers: {
+                                'Content-Type': 'text/plain; charset=utf-8'
+                            }
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            addStatus(`✅ Found ${data.elements?.length || 0} objects`, 'success');
+
+                            if (data.elements && data.elements.length > 0) {
+                                clearResults();
+
+                                const testResults = [];
+                                const limit = Math.min(20, data.elements.length);
+
+                                for (let i = 0; i < limit; i++) {
+                                    const element = data.elements[i];
+                                    let coords;
+                                    if (element.lat && element.lon) {
+                                        coords = [element.lat, element.lon];
+                                    } else if (element.center) {
+                                        coords = [element.center.lat, element.center.lon];
+                                    }
+
+                                    if (coords) {
+                                        const tags = element.tags || {};
+                                        const name = tags.name || 'Unnamed';
+                                        const type = element.type || 'unknown';
+
+                                        testResults.push({
+                                            type: 'military',
+                                            name: name + ` (${type})`,
+                                            subtype: 'Test Object',
+                                            coords: coords,
+                                            source: 'Test Query',
+                                            id: 'test_' + i
+                                        });
+                                    }
+                                }
+
+                                displayResults(testResults);
+                                addStatus(`🎉 Displayed ${testResults.length} test objects`, 'success');
+                            }
+                            return;
+                        }
+                    } catch (error) {
+                        console.warn(`Сервер ${server}: ${error.message}`);
+                        continue;
+                    }
+                }
+
+                addStatus('❌ All servers unavailable', 'error');
+            } catch (error) {
+                console.error('Test error:', error);
+                addStatus(`❌ Test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function searchObjects() {
+            // Валидация входных данных
+            if (!validateAllInputs()) {
+                alert('Please correct the validation errors before searching');
+                return;
+            }
+
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lon = parseFloat(document.getElementById('longitude').value);
+            const radius = parseFloat(document.getElementById('radius').value);
+            const filterMilitary = document.getElementById('filterMilitary').checked;
+            const filterHospital = document.getElementById('filterHospital').checked;
+
+            // Проверка выбранных источников данных
+            const useOSM = document.getElementById('sourceOSM').checked;
+            const useGeoNames = document.getElementById('sourceGeoNames').checked;
+            const useWikidata = document.getElementById('sourceWikidata').checked;
+
+            if (!useOSM && !useGeoNames && !useWikidata) {
+                alert('Please select at least one data source!');
+                return;
+            }
+
+            // Проверка GeoNames username
+            if (useGeoNames) {
+                const geonamesUsername = document.getElementById('geonamesUsername').value.trim();
+                if (!geonamesUsername) {
+                    alert('⚠️ GeoNames is enabled but username is not provided!\n\nPlease enter your GeoNames username in "🔑 API Credentials" section or disable GeoNames data source.');
+                    return;
+                }
+            }
+
+            const searchBtn = document.getElementById('searchBtn');
+            searchBtn.disabled = true;
+            searchBtn.textContent = '⏳ Searching...';
+
+            clearResults();
+            document.getElementById('statusList').innerHTML = '';
+            addSearchMarker(lat, lon, radius);
+
+            allResults = [];
+
+            try {
+                // OpenStreetMap (Overpass API)
+                if (useOSM) {
+                    if (filterMilitary) {
+                        addStatus('📡 [OSM] Searching military facilities...', 'pending');
+                        await sleep(500);
+                        const count = await searchOverpassAPI(lat, lon, radius, 'military');
+                        addStatus(`✅ [OSM] Military facilities: ${count} found`, 'success');
+                        await sleep(1000);
+                    }
+
+                    if (filterHospital) {
+                        addStatus('📡 [OSM] Searching hospitals...', 'pending');
+                        await sleep(500);
+                        const count = await searchOverpassAPI(lat, lon, radius, 'hospital');
+                        addStatus(`✅ [OSM] Hospitals: ${count} found`, 'success');
+                        await sleep(1000);
+                    }
+                }
+
+                // GeoNames API
+                if (useGeoNames) {
+                    if (filterMilitary) {
+                        addStatus('📡 [GeoNames] Searching military facilities...', 'pending');
+                        await sleep(500);
+                        const count = await searchGeoNamesAPI(lat, lon, radius, 'military');
+                        addStatus(`✅ [GeoNames] Military facilities: ${count} found`, 'success');
+                        await sleep(1000);
+                    }
+
+                    if (filterHospital) {
+                        addStatus('📡 [GeoNames] Searching hospitals...', 'pending');
+                        await sleep(500);
+                        const count = await searchGeoNamesAPI(lat, lon, radius, 'hospital');
+                        addStatus(`✅ [GeoNames] Hospitals: ${count} found`, 'success');
+                        await sleep(1000);
+                    }
+                }
+
+                // Wikidata API
+                if (useWikidata) {
+                    if (filterMilitary) {
+                        addStatus('📡 [Wikidata] Searching military facilities...', 'pending');
+                        await sleep(500);
+                        const count = await searchWikidataAPI(lat, lon, radius, 'military');
+                        addStatus(`✅ [Wikidata] Military facilities: ${count} found`, 'success');
+                        await sleep(1000);
+                    }
+
+                    if (filterHospital) {
+                        addStatus('📡 [Wikidata] Searching hospitals...', 'pending');
+                        await sleep(500);
+                        const count = await searchWikidataAPI(lat, lon, radius, 'hospital');
+                        addStatus(`✅ [Wikidata] Hospitals: ${count} found`, 'success');
+                    }
+                }
+
+                displayResults(allResults);
+                addStatus(`🎉 Total found: ${allResults.length} objects`, 'success');
+
+                // Сохранение в историю
+                addSearchToHistory(lat, lon, radius, { military: filterMilitary, hospital: filterHospital }, allResults.length);
+
+                // Генерация share link
+                generateShareLink();
+
+            } catch (error) {
+                console.error('Search error:', error);
+                addStatus(`❌ Error: ${error.message}`, 'error');
+                addStatus('💡 Try reducing radius or retry later', 'pending');
+            }
+
+            searchBtn.disabled = false;
+            searchBtn.textContent = '🔍 Find Objects';
+        }
+
+        function addSearchMarker(lat, lon, radius) {
+            if (searchMarker) {
+                map.removeLayer(searchMarker);
+            }
+            if (searchCircle) {
+                map.removeLayer(searchCircle);
+            }
+
+            const searchIcon = L.divIcon({
+                className: 'search-marker',
+                html: '<div style="background: #2196F3; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+
+            searchMarker = L.marker([lat, lon], { icon: searchIcon }).addTo(map);
+            searchMarker.bindPopup('<b>Search Center</b><br>Coordinates: ' + lat.toFixed(4) + ', ' + lon.toFixed(4));
+
+            searchCircle = L.circle([lat, lon], {
+                color: '#2196F3',
+                fillColor: '#2196F3',
+                fillOpacity: 0.1,
+                radius: radius * 1000
+            }).addTo(map);
+
+            map.setView([lat, lon], Math.max(10, 14 - Math.floor(radius / 10)));
+        }
+
+        function displayResults(results) {
+            const resultsList = document.getElementById('resultsList');
+            const resultCount = document.getElementById('resultCount');
+
+            resultCount.textContent = results.length;
+
+            if (results.length === 0) {
+                resultsList.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No objects found</p>';
+                document.getElementById('exportBtn').style.display = 'none';
+                document.getElementById('shareSection').style.display = 'none';
+                return;
+            }
+
+            // Показать кнопку экспорта и share секцию
+            document.getElementById('exportBtn').style.display = 'block';
+            document.getElementById('shareSection').style.display = 'block';
+
+            resultsList.innerHTML = '';
+
+            const militaryResults = results.filter(r => r.type === 'military');
+            const hospitalResults = results.filter(r => r.type === 'hospital');
+
+            [...militaryResults, ...hospitalResults].forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.innerHTML = `
+                    <div class="type">${result.source} | ${result.subtype}</div>
+                    <div class="name">${result.name}</div>
+                `;
+
+                resultItem.onclick = () => {
+                    map.setView(result.coords, 15);
+                    const marker = markers.find(m => m.resultId === result.id);
+                    if (marker) {
+                        marker.openPopup();
+                    }
+                };
+
+                resultsList.appendChild(resultItem);
+            });
+
+            results.forEach(result => {
+                const color = result.type === 'military' ? '#e94560' : '#4CAF50';
+
+                const markerIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background: ${color}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                });
+
+                const marker = L.marker(result.coords, { icon: markerIcon }).addTo(map);
+                marker.bindPopup(`
+                    <b>${result.name}</b><br>
+                    <small>Type: ${result.subtype}</small><br>
+                    <small>Source: ${result.source}</small>
+                `);
+                marker.resultId = result.id;
+                markers.push(marker);
+            });
+        }
+
+        function clearResults() {
+            markers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            markers = [];
+            allResults = [];
+            document.getElementById('resultsList').innerHTML = '';
+            document.getElementById('resultCount').textContent = '0';
+            document.getElementById('statusBox').style.display = 'none';
+            document.getElementById('exportBtn').style.display = 'none';
+            document.getElementById('shareSection').style.display = 'none';
+        }
+
+        // ========== EXPORT FUNCTIONALITY ==========
+        function openExportModal() {
+            const modal = document.getElementById('exportModal');
+            modal.classList.add('show');
+
+            // Генерация имени файла с timestamp
+            const now = new Date();
+            const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            document.getElementById('exportFilename').value = `point_zero_${timestamp}`;
+        }
+
+        function closeExportModal() {
+            const modal = document.getElementById('exportModal');
+            modal.classList.remove('show');
+        }
+
+        function executeExport() {
+            const format = document.getElementById('exportFormat').value;
+            const filename = document.getElementById('exportFilename').value || 'point_zero_results';
+
+            let content, mimeType, extension;
+
+            switch (format) {
+                case 'csv':
+                    content = exportToCSV(allResults);
+                    mimeType = 'text/csv;charset=utf-8;';
+                    extension = 'csv';
+                    break;
+                case 'json':
+                    content = exportToJSON(allResults);
+                    mimeType = 'application/json';
+                    extension = 'json';
+                    break;
+                case 'geojson':
+                    content = exportToGeoJSON(allResults);
+                    mimeType = 'application/geo+json';
+                    extension = 'geojson';
+                    break;
+                case 'html':
+                    content = exportToHTML(allResults);
+                    mimeType = 'text/html';
+                    extension = 'html';
+                    break;
+                case 'txt':
+                    content = exportToTXT(allResults);
+                    mimeType = 'text/plain';
+                    extension = 'txt';
+                    break;
+                case 'md':
+                    content = exportToMD(allResults);
+                    mimeType = 'text/markdown';
+                    extension = 'md';
+                    break;
+            }
+
+            downloadFile(content, `${filename}.${extension}`, mimeType);
+            closeExportModal();
+        }
+
+        function exportToCSV(results) {
+            const headers = ['Type', 'Name', 'Subtype', 'Latitude', 'Longitude', 'Source'];
+            const rows = results.map(r => [
+                r.type,
+                `"${r.name.replace(/"/g, '""')}"`,
+                `"${r.subtype.replace(/"/g, '""')}"`,
+                r.coords[0],
+                r.coords[1],
+                r.source
+            ]);
+
+            return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        }
+
+        function exportToJSON(results) {
+            const data = {
+                metadata: {
+                    exportDate: new Date().toISOString(),
+                    totalResults: results.length,
+                    tool: 'Point Zero OSINT',
+                    version: '1.0.0'
+                },
+                results: results
+            };
+            return JSON.stringify(data, null, 2);
+        }
+
+        function exportToGeoJSON(results) {
+            const features = results.map(r => ({
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [r.coords[1], r.coords[0]] // GeoJSON использует [lon, lat]
+                },
+                properties: {
+                    type: r.type,
+                    name: r.name,
+                    subtype: r.subtype,
+                    source: r.source
+                }
+            }));
+
+            return JSON.stringify({
+                type: 'FeatureCollection',
+                features: features
+            }, null, 2);
+        }
+
+        function exportToHTML(results) {
+            const military = results.filter(r => r.type === 'military').length;
+            const hospitals = results.filter(r => r.type === 'hospital').length;
+
+            const rows = results.map(r => `
+                <tr>
+                    <td>${r.type}</td>
+                    <td>${r.name}</td>
+                    <td>${r.subtype}</td>
+                    <td>${r.coords[0].toFixed(4)}</td>
+                    <td>${r.coords[1].toFixed(4)}</td>
+                    <td>${r.source}</td>
+                </tr>
+            `).join('');
+
+            return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Point Zero OSINT Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        h1 { color: #d32f2f; }
+        .summary { background: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #d32f2f; color: white; }
+        tr:hover { background: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Point Zero OSINT Report</h1>
+    <div class="summary">
+        <p><strong>Export Date:</strong> ${new Date().toLocaleString()}</p>
+        <p><strong>Total Results:</strong> ${results.length}</p>
+        <p><strong>Military Facilities:</strong> ${military}</p>
+        <p><strong>Hospitals:</strong> ${hospitals}</p>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Name</th>
+                <th>Subtype</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Source</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${rows}
+        </tbody>
+    </table>
+</body>
+</html>`;
+        }
+
+        function exportToTXT(results) {
+            const lines = [
+                '='.repeat(60),
+                'POINT ZERO OSINT REPORT',
+                '='.repeat(60),
+                `Export Date: ${new Date().toLocaleString()}`,
+                `Total Results: ${results.length}`,
+                '',
+                'RESULTS:',
+                '-'.repeat(60)
+            ];
+
+            results.forEach((r, i) => {
+                lines.push(`${i + 1}. ${r.name}`);
+                lines.push(`   Type: ${r.type} | Subtype: ${r.subtype}`);
+                lines.push(`   Coordinates: ${r.coords[0].toFixed(4)}, ${r.coords[1].toFixed(4)}`);
+                lines.push(`   Source: ${r.source}`);
+                lines.push('');
+            });
+
+            return lines.join('\n');
+        }
+
+        function exportToMD(results) {
+            const military = results.filter(r => r.type === 'military').length;
+            const hospitals = results.filter(r => r.type === 'hospital').length;
+
+            const rows = results.map(r =>
+                `| ${r.type} | ${r.name} | ${r.subtype} | ${r.coords[0].toFixed(4)} | ${r.coords[1].toFixed(4)} | ${r.source} |`
+            ).join('\n');
+
+            return `# 🎯 Point Zero OSINT Report
+
+## Summary
+
+- **Export Date:** ${new Date().toLocaleString()}
+- **Total Results:** ${results.length}
+- **Military Facilities:** ${military}
+- **Hospitals:** ${hospitals}
+
+## Results
+
+| Type | Name | Subtype | Latitude | Longitude | Source |
+|------|------|---------|----------|-----------|--------|
+${rows}
+
+---
+
+Generated by [Point Zero OSINT](https://github.com/pointzero)
+`;
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        }
+
+        // ========== SHARE FUNCTIONALITY ==========
+        function generateShareLink() {
+            const lat = document.getElementById('latitude').value;
+            const lon = document.getElementById('longitude').value;
+            const radius = document.getElementById('radius').value;
+            const military = document.getElementById('filterMilitary').checked ? '1' : '0';
+            const hospital = document.getElementById('filterHospital').checked ? '1' : '0';
+
+            // Источники данных
+            const sourceOSM = document.getElementById('sourceOSM').checked ? '1' : '0';
+            const sourceGeoNames = document.getElementById('sourceGeoNames').checked ? '1' : '0';
+            const sourceWikidata = document.getElementById('sourceWikidata').checked ? '1' : '0';
+
+            const params = new URLSearchParams({
+                lat: lat,
+                lon: lon,
+                radius: radius,
+                military: military,
+                hospital: hospital,
+                sourceOSM: sourceOSM,
+                sourceGeoNames: sourceGeoNames,
+                sourceWikidata: sourceWikidata,
+                auto: '1'
+            });
+
+            const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+            document.getElementById('shareUrl').value = shareUrl;
+        }
+
+        function copyShareLink() {
+            const shareUrl = document.getElementById('shareUrl');
+            const copyBtn = document.getElementById('copyBtn');
+
+            shareUrl.select();
+            shareUrl.setSelectionRange(0, 99999);
+
+            try {
+                navigator.clipboard.writeText(shareUrl.value).then(() => {
+                    copyBtn.textContent = '✅ Copied!';
+                    copyBtn.classList.add('copied');
+                    setTimeout(() => {
+                        copyBtn.textContent = '📋 Copy';
+                        copyBtn.classList.remove('copied');
+                    }, 2000);
+                });
+            } catch (err) {
+                // Fallback для старых браузеров
+                document.execCommand('copy');
+                copyBtn.textContent = '✅ Copied!';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 Copy';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            }
+        }
+
+        function loadFromUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+
+            if (params.has('lat') && params.has('lon') && params.has('radius')) {
+                const lat = parseFloat(params.get('lat'));
+                const lon = parseFloat(params.get('lon'));
+                const radius = parseFloat(params.get('radius'));
+
+                if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180 && radius >= 0.001 && radius <= 10000) {
+                    document.getElementById('latitude').value = lat;
+                    document.getElementById('longitude').value = lon;
+                    document.getElementById('radius').value = radius;
+
+                    if (params.has('military')) {
+                        document.getElementById('filterMilitary').checked = params.get('military') === '1';
+                    }
+                    if (params.has('hospital')) {
+                        document.getElementById('filterHospital').checked = params.get('hospital') === '1';
+                    }
+
+                    // Восстановление настроек источников данных
+                    if (params.has('sourceOSM')) {
+                        document.getElementById('sourceOSM').checked = params.get('sourceOSM') === '1';
+                    }
+                    if (params.has('sourceGeoNames')) {
+                        document.getElementById('sourceGeoNames').checked = params.get('sourceGeoNames') === '1';
+                    }
+                    if (params.has('sourceWikidata')) {
+                        document.getElementById('sourceWikidata').checked = params.get('sourceWikidata') === '1';
+                    }
+
+                    map.setView([lat, lon], Math.max(10, 14 - Math.floor(radius / 10)));
+
+                    if (params.get('auto') === '1') {
+                        setTimeout(() => searchObjects(), 1000);
+                    }
+                }
+            }
+        }
+
+        // ========== SEARCH HISTORY ==========
+        function loadHistory() {
+            try {
+                const history = localStorage.getItem('searchHistory');
+                return history ? JSON.parse(history) : [];
+            } catch (e) {
+                console.error('Error loading history:', e);
+                return [];
+            }
+        }
+
+        function saveHistory(searches) {
+            try {
+                localStorage.setItem('searchHistory', JSON.stringify(searches));
+            } catch (e) {
+                console.error('Error saving history:', e);
+            }
+        }
+
+        function addSearchToHistory(lat, lon, radius, filters, count) {
+            const searches = loadHistory();
+
+            const newSearch = {
+                id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                timestamp: new Date().toISOString(),
+                location: { lat, lon },
+                radius: radius,
+                filters: filters,
+                resultsCount: count
+            };
+
+            searches.unshift(newSearch);
+
+            // Ограничение до 50 записей
+            if (searches.length > 50) {
+                searches.pop();
+            }
+
+            saveHistory(searches);
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const searches = loadHistory();
+            const historyList = document.getElementById('historyList');
+            const clearBtn = document.getElementById('clearHistoryBtn');
+
+            if (searches.length === 0) {
+                historyList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 10px;">No search history</p>';
+                clearBtn.style.display = 'none';
+                return;
+            }
+
+            clearBtn.style.display = 'block';
+            historyList.innerHTML = '';
+
+            searches.slice(0, 20).forEach(search => {
+                const date = new Date(search.timestamp);
+                const timeStr = date.toLocaleString();
+
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <div><strong>${search.location.lat.toFixed(4)}, ${search.location.lon.toFixed(4)}</strong></div>
+                    <div>Radius: ${search.radius}km | Results: ${search.resultsCount}</div>
+                    <div class="time">${timeStr}</div>
+                `;
+
+                item.onclick = () => restoreSearch(search);
+                historyList.appendChild(item);
+            });
+        }
+
+        function restoreSearch(search) {
+            document.getElementById('latitude').value = search.location.lat;
+            document.getElementById('longitude').value = search.location.lon;
+            document.getElementById('radius').value = search.radius;
+            document.getElementById('filterMilitary').checked = search.filters.military;
+            document.getElementById('filterHospital').checked = search.filters.hospital;
+
+            map.setView([search.location.lat, search.location.lon], Math.max(10, 14 - Math.floor(search.radius / 10)));
+
+            setTimeout(() => searchObjects(), 500);
+        }
+
+        function toggleHistory() {
+            const historyList = document.getElementById('historyList');
+            const icon = document.getElementById('historyToggleIcon');
+
+            if (historyList.classList.contains('show')) {
+                historyList.classList.remove('show');
+                icon.textContent = '▼';
+            } else {
+                historyList.classList.add('show');
+                icon.textContent = '▲';
+            }
+        }
+
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear all search history?')) {
+                localStorage.removeItem('searchHistory');
+                renderHistory();
+                alert('Search history cleared');
+            }
+        }
+
+        // ========== API CREDENTIALS ==========
+        async function testGeoNamesConnection() {
+            const username = document.getElementById('geonamesUsername').value.trim();
+
+            if (!username) {
+                alert('⚠️ Please enter your GeoNames username first!');
+                return;
+            }
+
+            // Простой тестовый запрос к GeoNames API
+            const testUrl = `http://api.geonames.org/getJSON?geonameId=2988507&username=${username}`;
+            console.log('Testing GeoNames connection:', testUrl);
+
+            try {
+                const response = await fetch(testUrl);
+
+                console.log('===== GeoNames TEST DEBUG =====');
+                console.log('Test URL:', testUrl);
+                console.log('Response status:', response.status);
+                console.log('Response statusText:', response.statusText);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+                const responseText = await response.text();
+                console.log('Response body:', responseText);
+
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                    console.log('Parsed JSON:', data);
+                } catch (e) {
+                    console.error('Failed to parse JSON:', e);
+                }
+
+                if (response.status === 401) {
+                    const errorDetail = data?.status?.message || 'Unknown error';
+                    console.error('GeoNames 401 Error:', errorDetail);
+                    alert(`❌ GeoNames Test Failed: 401 Unauthorized\n\nError: ${errorDetail}\n\nYour account is NOT activated properly.\n\nCheck console (F12) for details.`);
+                    return;
+                }
+
+                if (response.ok) {
+                    if (data && data.name) {
+                        alert(`✅ GeoNames Test Successful!\n\nYour account "${username}" is working correctly.\n\nTest location: ${data.name}, ${data.countryName}\n\nYou can now use GeoNames data source.`);
+                    } else if (data && data.status) {
+                        alert(`⚠️ GeoNames Error: ${data.status.message}`);
+                    }
+                } else {
+                    alert(`❌ GeoNames Test Failed: HTTP ${response.status}\n\n${response.statusText}\n\nCheck console (F12) for details.`);
+                }
+            } catch (error) {
+                console.error('GeoNames test error:', error);
+                alert(`❌ Connection Error: ${error.message}\n\nCheck your internet connection.`);
+            }
+        }
+
+        function toggleCredentials() {
+            const credentialsList = document.getElementById('credentialsList');
+            const icon = document.getElementById('credentialsToggleIcon');
+
+            if (credentialsList.classList.contains('show')) {
+                credentialsList.classList.remove('show');
+                icon.textContent = '▼';
+            } else {
+                credentialsList.classList.add('show');
+                icon.textContent = '▲';
+            }
+        }
+
+        function loadCredentials() {
+            try {
+                const geonamesUsername = localStorage.getItem('geonamesUsername');
+                if (geonamesUsername) {
+                    document.getElementById('geonamesUsername').value = geonamesUsername;
+                }
+            } catch (e) {
+                console.error('Error loading credentials:', e);
+            }
+        }
+
+        function saveGeonamesUsername() {
+            const username = document.getElementById('geonamesUsername').value;
+            if (username) {
+                localStorage.setItem('geonamesUsername', username);
+            }
+        }
+
+        function setupCredentialsListeners() {
+            const geonamesInput = document.getElementById('geonamesUsername');
+            geonamesInput.addEventListener('change', saveGeonamesUsername);
+            geonamesInput.addEventListener('blur', saveGeonamesUsername);
+        }
+
+        initMap();
+    </script>
+</body>
+</html>

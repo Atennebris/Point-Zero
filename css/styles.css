@@ -1,0 +1,577 @@
+/* ============================================================
+   Point Zero OSINT Tool - Styles
+   ============================================================ */
+
+/* ============================================================
+   CSS переменные для темной и светлой темы
+   ============================================================ */
+
+/* CSS переменные для темной темы (по умолчанию) */
+:root {
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-tertiary: #0f3460;
+    --text-primary: #eee;
+    --text-secondary: #888;
+    --accent: #e94560;
+    --accent-hover: #c73e54;
+    --border: #0f3460;
+    --error: #e94560;
+    --success: #4CAF50;
+    --warning: #FF9800;
+}
+
+/* CSS переменные для светлой темы */
+:root.light-theme {
+    --bg-primary: #f5f5f5;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e8e8e8;
+    --text-primary: #333;
+    --text-secondary: #666;
+    --accent: #d32f2f;
+    --accent-hover: #b71c1c;
+    --border: #ddd;
+    --error: #d32f2f;
+    --success: #388e3c;
+    --warning: #f57c00;
+}
+
+/* ============================================================
+   Базовые стили
+   ============================================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background 0.3s, color 0.3s;
+}
+
+/* ============================================================
+   Layout контейнеры
+   ============================================================ */
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 350px;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-right: 2px solid var(--border);
+    overflow-y: auto;
+}
+
+.sidebar h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: var(--accent);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#map {
+    flex: 1;
+}
+
+/* ============================================================
+   Кнопка переключения темы
+   ============================================================ */
+
+.theme-toggle {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 18px;
+    border-radius: 5px;
+    transition: all 0.3s;
+    width: auto;
+}
+
+.theme-toggle:hover {
+    background: var(--accent);
+    transform: scale(1.1);
+}
+
+/* ============================================================
+   Формы и инпуты
+   ============================================================ */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+/* ============================================================
+   Стили валидации
+   ============================================================ */
+
+.form-group input.input-error {
+    border-color: var(--error) !important;
+    box-shadow: 0 0 5px rgba(233, 69, 96, 0.5);
+}
+
+.validation-message {
+    font-size: 11px;
+    color: var(--error);
+    margin-top: 5px;
+    display: none;
+}
+
+.validation-message.show {
+    display: block;
+}
+
+/* ============================================================
+   Кнопки
+   ============================================================ */
+
+button {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: var(--accent-hover);
+}
+
+button:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+button.test-btn {
+    background: var(--bg-tertiary);
+    font-size: 14px;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+
+button.test-btn:hover {
+    background: var(--border);
+}
+
+button.secondary-btn {
+    background: var(--bg-tertiary);
+    margin-top: 10px;
+}
+
+button.secondary-btn:hover {
+    background: var(--border);
+}
+
+/* ============================================================
+   Фильтры
+   ============================================================ */
+
+.filters {
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--bg-tertiary);
+    border-radius: 5px;
+}
+
+.filters h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: var(--accent);
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.filter-item input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+}
+
+.filter-item label {
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* ============================================================
+   Результаты
+   ============================================================ */
+
+.results {
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--bg-tertiary);
+    border-radius: 5px;
+}
+
+.results h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: var(--accent);
+}
+
+.result-item {
+    padding: 10px;
+    background: var(--bg-primary);
+    border-radius: 5px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.result-item:hover {
+    background: var(--bg-secondary);
+}
+
+.result-item .type {
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 5px;
+}
+
+.result-item .name {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* ============================================================
+   Легенда
+   ============================================================ */
+
+.legend {
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--bg-tertiary);
+    border-radius: 5px;
+}
+
+.legend h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: var(--accent);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.legend-item .marker {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.legend-item .marker.military {
+    background: #e94560;
+}
+
+.legend-item .marker.hospital {
+    background: #4CAF50;
+}
+
+/* ============================================================
+   Статус и загрузка
+   ============================================================ */
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: var(--accent);
+}
+
+.info-box {
+    padding: 10px;
+    margin-top: 10px;
+    background: var(--bg-primary);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.status {
+    padding: 10px;
+    margin-top: 10px;
+    background: var(--bg-primary);
+    border-radius: 5px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.status-item {
+    padding: 3px 0;
+}
+
+.status-item.success {
+    color: var(--success);
+}
+
+.status-item.error {
+    color: var(--error);
+}
+
+.status-item.pending {
+    color: var(--warning);
+}
+
+/* ============================================================
+   Модальное окно экспорта
+   ============================================================ */
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+}
+
+.modal.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border);
+}
+
+.modal-header {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: var(--accent);
+}
+
+.modal-close {
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.modal-close:hover {
+    color: var(--accent);
+}
+
+.export-format-selector {
+    margin-bottom: 20px;
+}
+
+.export-format-selector label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.export-format-selector select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+/* ============================================================
+   История поисков
+   ============================================================ */
+
+.history {
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--bg-tertiary);
+    border-radius: 5px;
+}
+
+.history h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: var(--accent);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-list {
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+}
+
+.history-list.show {
+    display: block;
+}
+
+.history-item {
+    padding: 8px;
+    background: var(--bg-primary);
+    border-radius: 5px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.3s;
+}
+
+.history-item:hover {
+    background: var(--bg-secondary);
+}
+
+.history-item .time {
+    color: var(--text-secondary);
+    font-size: 10px;
+}
+
+/* ============================================================
+   Share секция
+   ============================================================ */
+
+.share-section {
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--bg-tertiary);
+    border-radius: 5px;
+}
+
+.share-section h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: var(--accent);
+}
+
+.share-url-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.share-url-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-family: monospace;
+}
+
+.copy-btn {
+    padding: 8px 16px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.copy-btn:hover {
+    background: var(--accent-hover);
+}
+
+.copy-btn.copied {
+    background: var(--success);
+}
+
+/* ============================================================
+   Map Controls и Animations
+   ============================================================ */
+
+/* Leaflet control кнопки */
+.leaflet-control-recenter {
+    transition: all 0.2s;
+}
+
+.leaflet-control-recenter:hover {
+    background: var(--accent) !important;
+    color: white;
+    transform: scale(1.1);
+}
+
+.leaflet-control-recenter:active {
+    transform: scale(0.95);
+}
+
+/* Анимация pulse для клик-маркера */
+@keyframes pulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Курсор для draggable маркера */
+.leaflet-marker-draggable {
+    cursor: move !important;
+}
+
+/* Стили для Leaflet popup */
+.leaflet-popup-content {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 13px;
+}
+
+.leaflet-popup-content b {
+    color: var(--accent);
+}

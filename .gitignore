@@ -1,0 +1,68 @@
+# Резервные копии
+*.backup
+*.bak
+*.old
+*.tmp
+
+# Логи
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Зависимости (если появятся)
+node_modules/
+bower_components/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE / Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Временные файлы
+.cache/
+.temp/
+temp/
+tmp/
+
+# Scratchpad
+scratchpad/
+
+# Environment variables (на случай будущего использования)
+.env
+.env.local
+.env.*.local
+
+# Build outputs (если появятся)
+dist/
+build/
+*.min.js
+*.min.css
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Testing
+.pytest_cache/
+__pycache__/
+
+
+.claude/
+docs/
