@@ -8,14 +8,14 @@
 
 /* CSS переменные для темной темы (по умолчанию) */
 :root {
-    --bg-primary: #1a1a2e;
-    --bg-secondary: #16213e;
-    --bg-tertiary: #0f3460;
-    --text-primary: #eee;
-    --text-secondary: #888;
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-tertiary: #3a3a3a;
+    --text-primary: #e0e0e0;
+    --text-secondary: #999;
     --accent: #e94560;
     --accent-hover: #c73e54;
-    --border: #0f3460;
+    --border: #404040;
     --error: #e94560;
     --success: #4CAF50;
     --warning: #FF9800;
@@ -66,17 +66,133 @@ body {
     width: 350px;
     padding: 20px;
     background: var(--bg-secondary);
-    border-right: 2px solid var(--border);
+    border-right: 1px solid var(--border);
     overflow-y: auto;
 }
 
 .sidebar h1 {
-    font-size: 24px;
+    font-size: 22px;
     margin-bottom: 20px;
     color: var(--accent);
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+}
+
+/* Маленький логотип в sidebar */
+.sidebar-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.sidebar-logo:hover {
+    transform: scale(1.05);
+}
+
+/* Анимация пульсации для клика */
+@keyframes logo-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(233, 69, 96, 0);
+    }
+    30% {
+        transform: scale(1.12);
+        box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+    }
+    60% {
+        transform: scale(1.18);
+        box-shadow: 0 0 30px rgba(233, 69, 96, 0.7);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(233, 69, 96, 0);
+    }
+}
+
+.sidebar-logo.pulse {
+    animation: logo-pulse 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Анимация кувырка для 10-го клика */
+@keyframes logo-flip {
+    0% {
+        transform: rotate(0deg) scale(1);
+        box-shadow: 0 0 0 rgba(233, 69, 96, 0);
+    }
+    15% {
+        transform: rotate(45deg) scale(1.15);
+        box-shadow: 0 0 25px rgba(233, 69, 96, 0.6);
+    }
+    30% {
+        transform: rotate(90deg) scale(1.25);
+        box-shadow: 0 0 35px rgba(233, 69, 96, 0.7);
+    }
+    45% {
+        transform: rotate(135deg) scale(1.3);
+        box-shadow: 0 0 40px rgba(233, 69, 96, 0.8);
+    }
+    60% {
+        transform: rotate(180deg) scale(1.35);
+        box-shadow: 0 0 45px rgba(233, 69, 96, 0.9);
+    }
+    75% {
+        transform: rotate(270deg) scale(1.25);
+        box-shadow: 0 0 35px rgba(233, 69, 96, 0.7);
+    }
+    90% {
+        transform: rotate(315deg) scale(1.1);
+        box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+    }
+    100% {
+        transform: rotate(360deg) scale(1);
+        box-shadow: 0 0 0 rgba(233, 69, 96, 0);
+    }
+}
+
+.sidebar-logo.flip {
+    animation: logo-flip 1.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+/* ============================================================
+   Header кнопки
+   ============================================================ */
+
+.header-buttons {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+/* ============================================================
+   Map Container и Header над картой
+   ============================================================ */
+
+.map-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.map-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 70px;
+}
+
+.app-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.5px;
 }
 
 #map {
@@ -87,20 +203,27 @@ body {
    Кнопка переключения темы
    ============================================================ */
 
-.theme-toggle {
+.theme-toggle,
+.settings-toggle {
     background: var(--bg-tertiary);
     border: 1px solid var(--border);
     padding: 8px 12px;
     cursor: pointer;
     font-size: 18px;
-    border-radius: 5px;
+    border-radius: 6px;
     transition: all 0.3s;
     width: auto;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.theme-toggle:hover {
+.theme-toggle:hover,
+.settings-toggle:hover {
     background: var(--accent);
     transform: scale(1.1);
+    border-color: var(--accent);
 }
 
 /* ============================================================
@@ -119,10 +242,10 @@ body {
 
 .form-group input {
     width: 100%;
-    padding: 10px;
+    padding: 10px 12px;
     border: 1px solid var(--border);
-    border-radius: 5px;
-    background: var(--bg-tertiary);
+    border-radius: 6px;
+    background: var(--bg-primary);
     color: var(--text-primary);
     font-size: 14px;
     transition: all 0.3s;
@@ -131,6 +254,33 @@ body {
 .form-group input:focus {
     outline: none;
     border-color: var(--accent);
+    background: var(--bg-tertiary);
+    box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+}
+
+/* Специальные стили для date inputs для лучшей видимости */
+.form-group input[type="date"] {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+    cursor: pointer;
+}
+
+/* Светлая тема - инвертируем календарь обратно */
+:root.light-theme .form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.2);
+}
+
+.form-group input[type="date"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.form-group input[type="date"]:disabled::-webkit-calendar-picker-indicator {
+    opacity: 0.3;
 }
 
 /* ============================================================
@@ -163,19 +313,27 @@ button {
     background: var(--accent);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     font-size: 16px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s;
 }
 
 button:hover {
     background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
 }
 
 button:disabled {
-    background: #666;
+    background: #555;
     cursor: not-allowed;
+    opacity: 0.6;
 }
 
 button.test-btn {
@@ -205,8 +363,9 @@ button.secondary-btn:hover {
 .filters {
     margin-top: 20px;
     padding: 15px;
-    background: var(--bg-tertiary);
-    border-radius: 5px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
 }
 
 .filters h3 {
@@ -238,8 +397,9 @@ button.secondary-btn:hover {
 .results {
     margin-top: 20px;
     padding: 15px;
-    background: var(--bg-tertiary);
-    border-radius: 5px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
 }
 
 .results h3 {
@@ -249,16 +409,19 @@ button.secondary-btn:hover {
 }
 
 .result-item {
-    padding: 10px;
-    background: var(--bg-primary);
-    border-radius: 5px;
-    margin-bottom: 10px;
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    margin-bottom: 8px;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s;
 }
 
 .result-item:hover {
     background: var(--bg-secondary);
+    border-color: var(--accent);
+    transform: translateX(4px);
 }
 
 .result-item .type {
@@ -279,8 +442,9 @@ button.secondary-btn:hover {
 .legend {
     margin-top: 20px;
     padding: 15px;
-    background: var(--bg-tertiary);
-    border-radius: 5px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
 }
 
 .legend h3 {
@@ -379,10 +543,10 @@ button.secondary-btn:hover {
 .modal-content {
     background: var(--bg-secondary);
     padding: 30px;
-    border-radius: 10px;
+    border-radius: 12px;
     width: 90%;
     max-width: 500px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
     border: 1px solid var(--border);
 }
 
@@ -415,12 +579,20 @@ button.secondary-btn:hover {
 
 .export-format-selector select {
     width: 100%;
-    padding: 10px;
+    padding: 10px 12px;
     border: 1px solid var(--border);
-    border-radius: 5px;
-    background: var(--bg-tertiary);
+    border-radius: 6px;
+    background: var(--bg-primary);
     color: var(--text-primary);
     font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.export-format-selector select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
 }
 
 /* ============================================================
@@ -430,8 +602,9 @@ button.secondary-btn:hover {
 .history {
     margin-top: 20px;
     padding: 15px;
-    background: var(--bg-tertiary);
-    border-radius: 5px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
 }
 
 .history h3 {
@@ -455,17 +628,20 @@ button.secondary-btn:hover {
 }
 
 .history-item {
-    padding: 8px;
-    background: var(--bg-primary);
-    border-radius: 5px;
-    margin-bottom: 8px;
+    padding: 10px;
+    background: var(--bg-tertiary);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    margin-bottom: 6px;
     cursor: pointer;
     font-size: 12px;
-    transition: background 0.3s;
+    transition: all 0.3s;
 }
 
 .history-item:hover {
     background: var(--bg-secondary);
+    border-color: var(--accent);
+    transform: translateX(4px);
 }
 
 .history-item .time {

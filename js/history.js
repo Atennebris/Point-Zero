@@ -24,6 +24,15 @@ function saveHistory(searches) {
 
 // Добавление поиска в историю
 function addSearchToHistory(lat, lon, radius, filters, count) {
+    // Проверка настройки Auto-save
+    if (window.Settings) {
+        const settings = window.Settings.loadSettings();
+        if (!settings.autoSaveHistory) {
+            console.log('Auto-save history disabled');
+            return;
+        }
+    }
+
     const searches = loadHistory();
 
     const newSearch = {

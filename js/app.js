@@ -36,16 +36,18 @@ async function testSimpleQuery() {
     const radius = parseFloat(document.getElementById('radius').value) || 10;
     const radiusMeters = radius * 1000;
 
-    window.Utils.addStatus('🧪 Test query (all objects)...', 'pending');
+    window.Utils.addStatus('🧪 Test query (military objects)...', 'pending');
 
     try {
         const query = `
-            [out:json][timeout:90];
+            [out:json][timeout:25];
             (
-                node(around:${radiusMeters},${lat},${lon});
-                way(around:${radiusMeters},${lat},${lon});
+                node["landuse"="military"](around:${radiusMeters},${lat},${lon});
+                way["landuse"="military"](around:${radiusMeters},${lat},${lon});
+                node["military"](around:${radiusMeters},${lat},${lon});
+                way["military"](around:${radiusMeters},${lat},${lon});
             );
-            out center;
+            out center 100;
         `;
 
         for (const server of window.Config.OVERPASS_SERVERS) {

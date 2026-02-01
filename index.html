@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Military & Medical Facilities Finder</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
@@ -19,8 +22,7 @@
     <div class="container">
         <div class="sidebar">
             <h1>
-                <span>🎯 Search Objects</span>
-                <button class="theme-toggle" onclick="window.Theme.toggleTheme()" id="themeToggle">🌙</button>
+                <span>Search Objects</span>
             </h1>
 
             <div class="form-group">
@@ -43,18 +45,27 @@
 
             <button id="searchBtn" onclick="window.App.searchObjects()">🔍 Find Objects</button>
 
-            <button onclick="window.App.setTestLocation()" class="test-btn">
-                🧪 Test: Washington DC (Pentagon)
-            </button>
-            <button onclick="window.App.setMoscowLocation()" class="test-btn">
-                🏛️ Test: Moscow
-            </button>
-            <button onclick="window.App.setBerlinLocation()" class="test-btn">
-                🇩🇪 Test: Berlin
-            </button>
-            <button onclick="window.App.testSimpleQuery()" class="test-btn" style="background: #4CAF50;">
-                🧪 Test Query
-            </button>
+            <!-- Test Locations -->
+            <div class="history" style="margin-top: 15px;">
+                <h3 onclick="window.Tests.toggleTestButtons()">
+                    <span>🧪 Test Locations</span>
+                    <span id="testButtonsToggleIcon">▼</span>
+                </h3>
+                <div class="history-list" id="testButtonsList" style="display: none;">
+                    <button onclick="window.App.setTestLocation()" class="test-btn">
+                        🧪 Test: Washington DC (Pentagon)
+                    </button>
+                    <button onclick="window.App.setMoscowLocation()" class="test-btn">
+                        🏛️ Test: Moscow
+                    </button>
+                    <button onclick="window.App.setBerlinLocation()" class="test-btn">
+                        🇩🇪 Test: Berlin
+                    </button>
+                    <button onclick="window.App.testSimpleQuery()" class="test-btn" style="background: #4CAF50;">
+                        🧪 Test Query
+                    </button>
+                </div>
+            </div>
 
             <div class="filters">
                 <h3>🔧 Filters</h3>
@@ -177,10 +188,6 @@
                     <div class="marker hospital"></div>
                     <span>Military Hospitals</span>
                 </div>
-                <div class="legend-item">
-                    <div class="marker" style="background: #2196F3;"></div>
-                    <span>Your Position</span>
-                </div>
             </div>
 
             <div class="results">
@@ -215,7 +222,16 @@
             </div>
         </div>
 
-        <div id="map"></div>
+        <div class="map-container">
+            <div class="map-header">
+                <span class="app-title">Point Zero OSINT</span>
+                <div class="header-buttons">
+                    <button class="theme-toggle" onclick="window.Theme.toggleTheme()" id="themeToggle">🌙</button>
+                    <button class="settings-toggle" onclick="window.Settings.openSettingsModal()" id="settingsToggle">⚙️</button>
+                </div>
+            </div>
+            <div id="map"></div>
+        </div>
     </div>
 
     <!-- Модальное окно экспорта -->
@@ -247,6 +263,44 @@
         </div>
     </div>
 
+    <!-- Модальное окно настроек -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="window.Settings.closeSettingsModal()">&times;</span>
+            <h2 class="modal-header">⚙️ Settings</h2>
+
+            <div class="form-group">
+                <label>Default Search Radius (km):</label>
+                <input type="number" id="defaultRadiusInput" min="0.001" max="10000" step="0.001" value="20">
+            </div>
+
+            <div class="filter-item" style="margin-bottom: 15px;">
+                <input type="checkbox" id="autoSaveHistoryCheck" checked>
+                <label for="autoSaveHistoryCheck">Auto-save Search History</label>
+            </div>
+
+            <div class="filter-item" style="margin-bottom: 15px;">
+                <input type="checkbox" id="showAdvancedFiltersCheck">
+                <label for="showAdvancedFiltersCheck">Show Advanced Filters by Default</label>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: var(--bg-primary); border-radius: 5px; border-left: 3px solid var(--warning);">
+                <strong>⚠️ Reset Settings</strong>
+                <p style="font-size: 12px; margin: 8px 0; color: var(--text-secondary);">
+                    This will reset all settings to default values. Your search history will NOT be affected.
+                </p>
+                <button onclick="window.Settings.resetSettings()" class="secondary-btn" style="width: 100%; margin-top: 10px; background: var(--warning);">
+                    🔄 Reset to Default
+                </button>
+            </div>
+
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button onclick="window.Settings.saveCurrentSettings()" style="flex: 1;">💾 Save Settings</button>
+                <button onclick="window.Settings.closeSettingsModal()" class="secondary-btn" style="flex: 1;">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -264,11 +318,14 @@
     <script src="js/utils.js"></script>
     <script src="js/validation.js"></script>
     <script src="js/theme.js"></script>
+    <script src="js/logo.js"></script>
+    <script src="js/settings.js"></script>
     <script src="js/credentials.js"></script>
     <script src="js/datasources.js"></script>
     <script src="js/history.js"></script>
     <script src="js/share.js"></script>
     <script src="js/filters.js"></script>
+    <script src="js/tests.js"></script>
     <script src="js/api.js"></script>
     <script src="js/export.js"></script>
     <script src="js/map.js"></script>
