@@ -266,11 +266,11 @@ Point-Zero/
 │   └── images/
 │       └── logo.png        # Favicon (512×512px)
 │
-├── .claude/                # AI assistant configuration
-│   └── CLAUDE.md           # Development rules
 │
-└── docs/                   # Additional documentation
-    └── README_RU.md
+├── docs/                   # Additional documentation
+│    └── README_RU.md
+│
+└── README.md
 ```
 
 ### Code Conventions
@@ -288,43 +288,6 @@ According to `.claude/CLAUDE.md`:
 - **YAGNI** (You Ain't Gonna Need It)
 
 ---
-
-## 🤝 Contributing
-
-### Commit Convention
-
-Use prefixes:
-
-- `feat:` — new feature
-- `fix:` — bug fix
-- `docs:` — documentation update
-- `refactor:` — refactoring without changing functionality
-- `chore:` — technical work
-
-**Examples:**
-```bash
-git commit -m "feat: add GeoJSON export format"
-git commit -m "fix: correct coordinate validation range"
-git commit -m "docs: update README with new features"
-```
-
-### Workflow
-
-1. Fork the repository
-2. Create feature branch:
-   ```bash
-   git checkout -b feature/my-new-feature
-   ```
-3. Make changes
-4. Commit changes:
-   ```bash
-   git commit -m "feat: add my new feature"
-   ```
-5. Push to branch:
-   ```bash
-   git push origin feature/my-new-feature
-   ```
-6. Create Pull Request
 
 ---
 
@@ -366,7 +329,7 @@ This project was created for **AI Vibe Coding Hackathon**
 
 ### OpenStreetMap Community
 
-Huge thanks to thousands of mappers worldwide who create and maintain OpenStreetMap — the most detailed map of the planet!
+Thanks to the mappers worldwide supporting OpenStreetMap.
 
 ### Used Libraries
 
