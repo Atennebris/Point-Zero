@@ -35,6 +35,31 @@
 - ✅ **Coordinate validation** with visual feedback
 - 🔒 **100% client-side** — no servers, no tracking
 
+
+## Screenshots
+
+<p align="center">
+  <a href="assets/images/screen001.png">
+    <img src="assets/images/screen001.png" width="48%"/>
+  </a>
+  <a href="assets/images/screen002.png">
+    <img src="assets/images/screen002.png" width="48%"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="assets/images/screen003.png">
+    <img src="assets/images/screen003.png" width="32%"/>
+  </a>
+  <a href="assets/images/screen004.png">
+    <img src="assets/images/screen004.png" width="32%"/>
+  </a>
+  <a href="assets/images/screen005.png">
+    <img src="assets/images/screen005.png" width="32%"/>
+  </a>
+</p>
+
+
 ---
 
 ## 🚀 Quick Start
