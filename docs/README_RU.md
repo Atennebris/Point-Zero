@@ -101,6 +101,7 @@ xdg-open index.html
    - **HTML** — красивый отчет для браузера
    - **TXT** — простой текстовый список
    - **Markdown** — для документации/GitHub
+   - **ZIP** — все форматы в одном архиве
 
 3. Укажите имя файла и скачайте
 
@@ -285,6 +286,19 @@ Point-Zero/
 - **DRY** (Don't Repeat Yourself)
 - **KISS** (Keep It Simple, Stupid)
 - **YAGNI** (You Ain't Gonna Need It)
+
+### Создание проекта с помощью AI
+
+Этот проект был полностью создан автором **Atennebris** при помощи нейронной сети от компании **Anthropic**:
+
+- **Основная модель:** Claude Sonnet 4.5 (с функцией thinking)
+- **Платформа:** Claude Code — CLI (Command Line Interface) от Anthropic
+- **Интерфейс:** Графическая версия Claude Code через расширение в IDE VS Code
+- **Роль автора:** Направление и управление процессом разработки без прямого написания кода
+- **Вспомогательные инструменты:** ChatGPT (OpenAI) и Gemini (Google) для мелких задач
+
+**Важно:** Весь код и документация были сгенерированы нейронной сетью Claude Sonnet 4.5. Автор не писал код вручную, а лишь направлял процесс разработки через промпты и уточнения.
+
 ---
 
 ---
@@ -326,7 +340,7 @@ SOFTWARE.
 
 ### OpenStreetMap Community
 
-Благодарю маппперов по всему миру, которые поддерживают OpenStreetMap
+Благодарю мапперов по всему миру, которые поддерживают OpenStreetMap
 
 ### Использованные библиотеки
 
@@ -365,6 +379,8 @@ SOFTWARE.
 - **Email:** [tene6r1ss@gmail.com](mailto:tene6r1ss@gmail.com)
 - **Telegram:** [@Atennebris](https://t.me/Atennebris)
 - **Группа Telegram:** [Atennebris Obscura](https://t.me/atennebris_obscura)
+- **Discord:** tene6ris_08752
+
 ---
 
 ---
