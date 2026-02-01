@@ -325,12 +325,39 @@ function displayResults(results) {
         });
 
         const marker = L.marker(result.coords, { icon: markerIcon });
+
+        // Создаем уникальный ID для кнопки AI Describe
+        const aiButtonId = `ai-btn-${result.id}`;
+
         marker.bindPopup(`
             <b>${result.name}</b><br>
             <small>Type: ${result.subtype}</small><br>
-            <small>Source: ${result.source}</small>
+            <small>Source: ${result.source}</small><br>
+            <button id="${aiButtonId}" class="ai-describe-btn">🤖 AI Describe</button>
         `);
         marker.resultId = result.id;
+
+        // Сохраняем полные данные результата в маркере для AI
+        marker.resultData = {
+            id: result.id,
+            name: result.name,
+            type: result.type,
+            tags: result.tags || {},
+            lat: result.coords[0],
+            lon: result.coords[1]
+        };
+
+        // Добавляем обработчик клика на кнопку AI после открытия popup
+        marker.on('popupopen', function() {
+            const aiBtn = document.getElementById(aiButtonId);
+            if (aiBtn && window.AIDescriptions) {
+                aiBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.AIDescriptions.generateDescriptionForLocation(marker.resultData, e);
+                };
+            }
+        });
 
         if (usesClustering && window.AppState.markerCluster) {
             // Добавляем в кластер

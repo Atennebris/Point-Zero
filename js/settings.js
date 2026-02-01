@@ -14,7 +14,10 @@ const DEFAULT_SETTINGS = {
     enableOSM: true,
     enableGeoNames: false,
     enableWikidata: false,
-    geonamesUsername: ''
+    geonamesUsername: '',
+    openrouterApiKey: '',
+    openrouterSelectedModel: 'gemma-3-12b',
+    aiCustomPrompt: ''
 };
 
 // Загрузка настроек из localStorage
@@ -86,6 +89,21 @@ function applySettings() {
         }
     }
 
+    // Применение OpenRouter API настроек
+    if (settings.openrouterApiKey) {
+        // Сохраняем API ключ через модуль ai-descriptions (если загружен)
+        if (typeof saveOpenRouterApiKey === 'function') {
+            saveOpenRouterApiKey(settings.openrouterApiKey);
+        }
+    }
+
+    if (settings.openrouterSelectedModel) {
+        // Сохраняем выбранную модель
+        if (typeof saveSelectedModel === 'function') {
+            saveSelectedModel(settings.openrouterSelectedModel);
+        }
+    }
+
     console.log('Настройки применены');
 }
 
@@ -144,8 +162,20 @@ function saveCurrentSettings() {
         enableOSM: document.getElementById('sourceOSM')?.checked ?? true,
         enableGeoNames: document.getElementById('sourceGeoNames')?.checked ?? false,
         enableWikidata: document.getElementById('sourceWikidata')?.checked ?? false,
-        geonamesUsername: document.getElementById('geonamesUsername')?.value?.trim() || ''
+        geonamesUsername: document.getElementById('geonamesUsername')?.value?.trim() || '',
+        openrouterApiKey: document.getElementById('aimlApiKeyInput')?.value?.trim() || '',
+        openrouterSelectedModel: document.getElementById('aimlModelSelect')?.value || 'gemma-3-12b',
+        aiCustomPrompt: document.getElementById('aiCustomPromptInput')?.value?.trim() || ''
     };
+
+    // Сохраняем OpenRouter настройки через модуль ai-descriptions
+    if (settings.openrouterApiKey && typeof saveOpenRouterApiKey === 'function') {
+        saveOpenRouterApiKey(settings.openrouterApiKey);
+    }
+
+    if (settings.openrouterSelectedModel && typeof saveSelectedModel === 'function') {
+        saveSelectedModel(settings.openrouterSelectedModel);
+    }
 
     if (saveSettings(settings)) {
         alert('✅ Settings saved successfully!');
@@ -162,10 +192,27 @@ function loadSettingsToModal() {
     const defaultRadiusInput = document.getElementById('defaultRadiusInput');
     const autoSaveHistoryCheck = document.getElementById('autoSaveHistoryCheck');
     const showAdvancedFiltersCheck = document.getElementById('showAdvancedFiltersCheck');
+    const aimlApiKeyInput = document.getElementById('aimlApiKeyInput');
+    const aimlModelSelect = document.getElementById('aimlModelSelect');
+    const aiCustomPromptInput = document.getElementById('aiCustomPromptInput');
 
     if (defaultRadiusInput) defaultRadiusInput.value = settings.defaultRadius;
     if (autoSaveHistoryCheck) autoSaveHistoryCheck.checked = settings.autoSaveHistory;
     if (showAdvancedFiltersCheck) showAdvancedFiltersCheck.checked = settings.showAdvancedFilters;
+
+    // Загружаем кастомный промпт
+    if (aiCustomPromptInput) {
+        aiCustomPromptInput.value = settings.aiCustomPrompt || '';
+    }
+
+    // Загружаем OpenRouter настройки из localStorage (через функции модуля ai-descriptions)
+    if (aimlApiKeyInput && typeof getOpenRouterApiKey === 'function') {
+        aimlApiKeyInput.value = getOpenRouterApiKey();
+    }
+
+    if (aimlModelSelect && typeof getSelectedModel === 'function') {
+        aimlModelSelect.value = getSelectedModel();
+    }
 }
 
 // Инициализация при загрузке страницы

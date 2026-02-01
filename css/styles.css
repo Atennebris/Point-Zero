@@ -204,6 +204,7 @@ body {
    ============================================================ */
 
 .theme-toggle,
+.ai-history-toggle,
 .settings-toggle {
     background: var(--bg-tertiary);
     border: 1px solid var(--border);
@@ -220,6 +221,7 @@ body {
 }
 
 .theme-toggle:hover,
+.ai-history-toggle:hover,
 .settings-toggle:hover {
     background: var(--accent);
     transform: scale(1.1);
@@ -546,6 +548,8 @@ button.secondary-btn:hover {
     border-radius: 12px;
     width: 90%;
     max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
     border: 1px solid var(--border);
 }
@@ -750,4 +754,163 @@ button.secondary-btn:hover {
 
 .leaflet-popup-content b {
     color: var(--accent);
+}
+
+/* ============================================================
+   AI Sidebar
+   ============================================================ */
+
+.ai-sidebar {
+    position: fixed;
+    top: 0;
+    right: -400px; /* Скрыт по умолчанию */
+    width: 400px;
+    height: 100vh;
+    background: var(--bg-secondary);
+    border-left: 2px solid var(--border);
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    transition: right 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.ai-sidebar.show {
+    right: 0;
+}
+
+.ai-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 2px solid var(--border);
+    background: var(--bg-primary);
+}
+
+.ai-sidebar-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--accent);
+}
+
+.ai-sidebar-close {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: all 0.2s;
+}
+
+.ai-sidebar-close:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.ai-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.ai-description-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.ai-description-header strong {
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.ai-description-body {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    white-space: pre-wrap;
+}
+
+.ai-description-footer {
+    display: flex;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border);
+}
+
+.ai-copy-btn,
+.ai-close-btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 13px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ai-copy-btn {
+    background: var(--accent);
+    color: white;
+}
+
+.ai-copy-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+}
+
+.ai-close-btn {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+
+.ai-close-btn:hover {
+    background: var(--bg-hover);
+}
+
+/* Адаптивность для AI sidebar */
+@media (max-width: 768px) {
+    .ai-sidebar {
+        width: 100%;
+        right: -100%;
+    }
+}
+
+/* ============================================================
+   AI Describe Button в Popup
+   ============================================================ */
+
+.ai-describe-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, var(--accent), #9333ea);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.ai-describe-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.ai-describe-btn:active {
+    transform: translateY(0);
+}
+
+.ai-describe-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
 }

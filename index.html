@@ -128,39 +128,6 @@
                 </div>
             </div>
 
-            <!-- API Credentials -->
-            <div class="history">
-                <h3 onclick="window.Credentials.toggleCredentials()">
-                    <span>🔑 API Credentials</span>
-                    <span id="credentialsToggleIcon">▼</span>
-                </h3>
-                <div class="history-list" id="credentialsList">
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label style="font-size: 12px;">GeoNames Username</label>
-                        <input type="text" id="geonamesUsername" placeholder="Enter your username" style="padding: 8px; font-size: 12px;">
-                        <button onclick="window.Credentials.testGeoNamesConnection()" class="test-btn" style="margin-top: 8px; width: 100%; padding: 6px; font-size: 11px;">
-                            🧪 Test GeoNames Connection
-                        </button>
-                        <div style="margin-top: 5px; font-size: 10px; color: var(--text-secondary);">
-                            <strong>Setup:</strong><br>
-                            1. Register at <a href="http://www.geonames.org/login" target="_blank" style="color: var(--accent);">geonames.org</a><br>
-                            2. Confirm email<br>
-                            3. Enable "Free Web Services" in <a href="http://www.geonames.org/manageaccount" target="_blank" style="color: var(--accent);">account settings</a><br>
-                            4. Wait 5-10 minutes after activation<br>
-                            <strong style="color: var(--warning);">⚠️ Username is case-sensitive!</strong>
-                        </div>
-                    </div>
-                    <!-- Placeholder для будущих API ключей -->
-                    <div style="padding: 8px; background: var(--bg-primary); border-radius: 5px; font-size: 11px; color: var(--text-secondary);">
-                        <strong>💡 Info:</strong> OpenStreetMap and Wikidata don't require API keys<br><br>
-                        <strong>📊 Data Coverage:</strong><br>
-                        • <strong>OSM</strong> - Best for military facilities<br>
-                        • <strong>GeoNames</strong> - Good global coverage<br>
-                        • <strong>Wikidata</strong> - Limited military data, good for hospitals
-                    </div>
-                </div>
-            </div>
-
             <!-- История поисков -->
             <div class="history">
                 <h3 onclick="window.History.toggleHistory()">
@@ -227,10 +194,24 @@
                 <span class="app-title">Point Zero OSINT</span>
                 <div class="header-buttons">
                     <button class="theme-toggle" onclick="window.Theme.toggleTheme()" id="themeToggle">🌙</button>
+                    <button class="ai-history-toggle" onclick="window.AIDescriptions.toggleAISidebar(true)" id="aiHistoryToggle" title="AI Descriptions History">🤖</button>
                     <button class="settings-toggle" onclick="window.Settings.openSettingsModal()" id="settingsToggle">⚙️</button>
                 </div>
             </div>
             <div id="map"></div>
+        </div>
+
+        <!-- AI Description Sidebar -->
+        <div id="aiDescriptionSidebar" class="ai-sidebar">
+            <div class="ai-sidebar-header">
+                <h3>🤖 AI Description</h3>
+                <button class="ai-sidebar-close" onclick="window.AIDescriptions.toggleAISidebar(false)">✕</button>
+            </div>
+            <div id="aiDescriptionContent" class="ai-sidebar-content">
+                <p style="color: var(--text-secondary); text-align: center; padding: 20px;">
+                    Click "🤖 AI Describe" button on any marker to generate description
+                </p>
+            </div>
         </div>
     </div>
 
@@ -284,6 +265,89 @@
                 <label for="showAdvancedFiltersCheck">Show Advanced Filters by Default</label>
             </div>
 
+            <!-- OpenRouter API Settings -->
+            <div style="margin-top: 20px; padding: 15px; background: var(--bg-primary); border-radius: 5px; border-left: 3px solid var(--accent);">
+                <strong>🤖 AI Descriptions (OpenRouter API)</strong>
+                <p style="font-size: 11px; margin: 8px 0; color: var(--text-secondary);">
+                    Generate human-readable descriptions for locations using AI.
+                </p>
+
+                <div class="form-group" style="margin-top: 10px;">
+                    <label style="font-size: 12px;">OpenRouter API Key:</label>
+                    <input type="password" id="aimlApiKeyInput" placeholder="Enter your OpenRouter API key" style="padding: 8px; font-size: 12px;">
+                </div>
+
+                <div class="form-group" style="margin-top: 10px;">
+                    <label style="font-size: 12px;">AI Model (100% FREE $0):</label>
+                    <select id="aimlModelSelect" style="padding: 8px; font-size: 11px; width: 100%; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 5px;">
+                        <option value="gemma-3-12b">Gemma 3 12B (Google) - Recommended</option>
+                        <option value="gemma-3-27b">Gemma 3 27B (Google) - Larger</option>
+                        <option value="deepseek-chimera">DeepSeek R1 Chimera (671B MoE)</option>
+                        <option value="mimo-flash">Xiaomi MiMo Flash (Fast)</option>
+                    </select>
+                    <div style="margin-top: 5px; font-size: 9px; color: var(--success);">
+                        ✅ All models: $0/M tokens (truly FREE)
+                    </div>
+                </div>
+
+                <button onclick="window.AIDescriptions.testOpenRouterConnectionUI(event)" class="test-btn" style="margin-top: 10px; width: 100%; padding: 8px; font-size: 11px;">
+                    🧪 Test OpenRouter Connection
+                </button>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label style="font-size: 12px;">Custom Prompt (Optional):</label>
+                    <textarea id="aiCustomPromptInput" placeholder="Add custom instructions for AI (e.g., 'Focus on security aspects', 'Be brief and technical', etc.)" style="padding: 8px; font-size: 11px; min-height: 60px; width: 100%; font-family: inherit; resize: vertical; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 5px;"></textarea>
+                    <div style="margin-top: 5px; font-size: 9px; color: var(--text-secondary);">
+                        💡 Customize AI responses with your own instructions
+                    </div>
+                </div>
+
+                <div style="margin-top: 10px; font-size: 10px; color: var(--text-secondary);">
+                    <strong>Setup:</strong><br>
+                    1. Register: <a href="https://openrouter.ai/auth" target="_blank" style="color: var(--accent);">openrouter.ai/auth</a><br>
+                    2. Get API key: <a href="https://openrouter.ai/settings/keys" target="_blank" style="color: var(--accent);">openrouter.ai/settings/keys</a><br>
+                    3. Free models listed above are 100% FREE<br><br>
+                    <strong style="color: var(--warning);">⚠️ Free Tier Limits:</strong><br>
+                    • <strong>50 requests/day</strong> (no credits)<br>
+                    • <strong>1000 requests/day</strong> (with $10 credits purchased)<br>
+                    <em style="font-size: 9px;">Credits are NOT consumed for free models, only unlock higher limits</em>
+                </div>
+            </div>
+
+            <!-- GeoNames API Settings -->
+            <div style="margin-top: 20px; padding: 15px; background: var(--bg-primary); border-radius: 5px; border-left: 3px solid #4CAF50;">
+                <strong>🌍 GeoNames API</strong>
+                <p style="font-size: 11px; margin: 8px 0; color: var(--text-secondary);">
+                    Additional data source for global coverage.
+                </p>
+
+                <div class="form-group" style="margin-top: 10px;">
+                    <label style="font-size: 12px;">GeoNames Username:</label>
+                    <input type="text" id="geonamesUsername" placeholder="Enter your username" style="padding: 8px; font-size: 12px;">
+                </div>
+
+                <button onclick="window.Credentials.testGeoNamesConnection()" class="test-btn" style="margin-top: 10px; width: 100%; padding: 8px; font-size: 11px;">
+                    🧪 Test GeoNames Connection
+                </button>
+
+                <div style="margin-top: 10px; font-size: 10px; color: var(--text-secondary);">
+                    <strong>Setup:</strong><br>
+                    1. Register at <a href="http://www.geonames.org/login" target="_blank" style="color: var(--accent);">geonames.org</a><br>
+                    2. Confirm email<br>
+                    3. Enable "Free Web Services" in <a href="http://www.geonames.org/manageaccount" target="_blank" style="color: var(--accent);">account settings</a><br>
+                    4. Wait 5-10 minutes after activation<br>
+                    <strong style="color: var(--warning);">⚠️ Username is case-sensitive!</strong>
+                </div>
+
+                <div style="margin-top: 10px; padding: 8px; background: var(--bg-secondary); border-radius: 5px; font-size: 10px; color: var(--text-secondary);">
+                    <strong>💡 Info:</strong> OpenStreetMap and Wikidata don't require API keys<br><br>
+                    <strong>📊 Data Coverage:</strong><br>
+                    • <strong>OSM</strong> - Best for military facilities<br>
+                    • <strong>GeoNames</strong> - Good global coverage<br>
+                    • <strong>Wikidata</strong> - Limited military data, good for hospitals
+                </div>
+            </div>
+
             <div style="margin-top: 20px; padding: 15px; background: var(--bg-primary); border-radius: 5px; border-left: 3px solid var(--warning);">
                 <strong>⚠️ Reset Settings</strong>
                 <p style="font-size: 12px; margin: 8px 0; color: var(--text-secondary);">
@@ -328,6 +392,7 @@
     <script src="js/tests.js"></script>
     <script src="js/api.js"></script>
     <script src="js/export.js"></script>
+    <script src="js/ai-descriptions.js"></script>
     <script src="js/map.js"></script>
     <script src="js/app.js"></script>
 </body>
