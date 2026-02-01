@@ -109,7 +109,7 @@ function toggleHeatmap() {
 // Показать heatmap
 function showHeatmap() {
     if (!window.AppState.allResults || window.AppState.allResults.length === 0) {
-        alert('No results to display on heatmap');
+        window.Notifications.info('No results to display on heatmap');
         document.getElementById('heatmapToggle').checked = false;
         return;
     }

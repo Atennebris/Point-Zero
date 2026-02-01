@@ -115,11 +115,16 @@ function toggleHistory() {
 }
 
 // Очистка истории
-function clearHistory() {
-    if (confirm('Are you sure you want to clear all search history?')) {
+async function clearHistory() {
+    const confirmed = await window.Notifications.confirm(
+        'Are you sure you want to clear all search history?',
+        { confirmText: 'Clear', cancelText: 'Cancel', type: 'warning' }
+    );
+
+    if (confirmed) {
         localStorage.removeItem('searchHistory');
         renderHistory();
-        alert('Search history cleared');
+        await window.Notifications.success('Search history cleared');
     }
 }
 

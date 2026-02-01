@@ -108,8 +108,13 @@ function applySettings() {
 }
 
 // Сброс настроек к дефолтным значениям
-function resetSettings() {
-    if (confirm('Reset all settings to default values?\n\nThis will:\n- Reset theme to Dark\n- Clear saved data sources\n- Clear GeoNames username\n- Reset default radius to 20km\n\nHistory and search results will NOT be affected.')) {
+async function resetSettings() {
+    const confirmed = await window.Notifications.confirm(
+        'Reset all settings to default values?\n\nThis will:\n- Reset theme to Dark\n- Clear saved data sources\n- Clear GeoNames username\n- Reset default radius to 20km\n\nHistory and search results will NOT be affected.',
+        { confirmText: 'Reset', cancelText: 'Cancel', type: 'warning' }
+    );
+
+    if (confirmed) {
         // Сохраняем дефолтные настройки
         saveSettings(DEFAULT_SETTINGS);
 
@@ -121,7 +126,7 @@ function resetSettings() {
             window.DataSources.updateActiveSourcesList();
         }
 
-        alert('✅ Settings have been reset to default values!');
+        await window.Notifications.success('Settings have been reset to default values!');
 
         // Закрываем модалку настроек
         closeSettingsModal();
@@ -153,7 +158,7 @@ function closeSettingsModal() {
 }
 
 // Сохранение текущих настроек из UI
-function saveCurrentSettings() {
+async function saveCurrentSettings() {
     const settings = {
         theme: localStorage.getItem('theme') || 'dark',
         defaultRadius: parseInt(document.getElementById('defaultRadiusInput')?.value) || 20,
@@ -178,10 +183,10 @@ function saveCurrentSettings() {
     }
 
     if (saveSettings(settings)) {
-        alert('✅ Settings saved successfully!');
+        await window.Notifications.success('Settings saved successfully!');
         closeSettingsModal();
     } else {
-        alert('❌ Error saving settings!');
+        await window.Notifications.error('Error saving settings!');
     }
 }
 

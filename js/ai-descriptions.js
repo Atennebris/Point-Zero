@@ -129,10 +129,21 @@ function getCachedDescription(osmId, modelKey) {
  */
 function cacheDescription(osmId, modelKey, description) {
     const key = getCacheKey(osmId, modelKey);
+
+    // Генерируем уникальный ID для этого описания
+    const allDescriptions = getAllCachedDescriptions();
+    const maxId = allDescriptions.length > 0
+        ? Math.max(...allDescriptions.map(d => d.uniqueId || 0))
+        : 0;
+    const uniqueId = maxId + 1;
+
     const data = {
+        osmId: osmId,          // Сохраняем osmId в данных
+        modelKey: modelKey,    // Сохраняем modelKey в данных
         description: description,
         timestamp: Date.now(),
-        version: CACHE_VERSION
+        version: CACHE_VERSION,
+        uniqueId: uniqueId
     };
 
     try {
@@ -194,11 +205,26 @@ function getAllCachedDescriptions() {
         if (key && key.startsWith(CACHE_PREFIX)) {
             try {
                 const data = JSON.parse(localStorage.getItem(key));
+
+                // Если данные содержат osmId и modelKey - используем их
+                let osmId = data.osmId;
+                let modelKey = data.modelKey;
+
+                // Для старых записей парсим ключ правильно
+                if (!osmId || !modelKey) {
+                    const prefix = `${CACHE_PREFIX}${CACHE_VERSION}_`; // "ai_desc_v1_"
+                    const remainder = key.substring(prefix.length); // Всё после префикса
+                    const lastUnderscoreIndex = remainder.lastIndexOf('_');
+                    osmId = remainder.substring(0, lastUnderscoreIndex); // Всё до последнего _
+                    modelKey = remainder.substring(lastUnderscoreIndex + 1); // После последнего _
+                }
+
                 descriptions.push({
-                    osmId: key.split('_')[3], // Извлекаем OSM ID
-                    model: key.split('_')[4], // Извлекаем model key
+                    osmId: osmId,
+                    model: modelKey,
                     description: data.description,
-                    timestamp: data.timestamp
+                    timestamp: data.timestamp,
+                    uniqueId: data.uniqueId || 0 // Для старых записей без ID
                 });
             } catch (e) {
                 console.error('Error parsing cached description:', e);
@@ -207,6 +233,69 @@ function getAllCachedDescriptions() {
     }
 
     return descriptions;
+}
+
+/**
+ * Удалить одно AI-описание из кеша
+ */
+async function deleteSingleDescription(osmId, modelKey) {
+    console.log('deleteSingleDescription called with:', { osmId, modelKey });
+
+    const confirmed = await window.Notifications.confirm(
+        'Delete this AI description?\n\nThis action cannot be undone.',
+        { confirmText: 'Delete', cancelText: 'Cancel', type: 'danger' }
+    );
+
+    console.log('User confirmed:', confirmed);
+
+    if (confirmed) {
+        const key = getCacheKey(osmId, modelKey);
+        console.log('Deleting key:', key);
+        console.log('Key exists in localStorage:', localStorage.getItem(key) !== null);
+
+        localStorage.removeItem(key);
+        console.log('After removal, key exists:', localStorage.getItem(key) !== null);
+
+        // Обновляем UI - показываем список заново
+        showAIHistoryList();
+
+        await window.Notifications.success('Description deleted successfully');
+    }
+}
+
+/**
+ * Удалить все AI-описания из кеша
+ */
+async function deleteAllDescriptions() {
+    const descriptions = getAllCachedDescriptions();
+
+    if (descriptions.length === 0) {
+        window.Notifications.info('No descriptions to delete');
+        return;
+    }
+
+    const confirmed = await window.Notifications.confirm(
+        `Delete ALL ${descriptions.length} AI descriptions?\n\nThis will permanently remove all cached AI descriptions.\n\nThis action cannot be undone.`,
+        { confirmText: 'Delete All', cancelText: 'Cancel', type: 'danger' }
+    );
+
+    if (confirmed) {
+        // Удаляем все кеши AI-описаний
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(CACHE_PREFIX)) {
+                keys.push(key);
+            }
+        }
+
+        keys.forEach(key => localStorage.removeItem(key));
+
+        // Обновляем UI - показываем пустой список
+        showAIHistoryList();
+
+        await window.Notifications.success(`${keys.length} descriptions deleted successfully`);
+    }
 }
 
 // ===========================================
@@ -444,7 +533,7 @@ function exportAIDescriptionsJSON() {
         const descriptions = getAllCachedDescriptions();
 
         if (descriptions.length === 0) {
-            alert('⚠️ No AI descriptions to export.\n\nGenerate some descriptions first by clicking "🤖 AI Describe" on markers.');
+            window.Notifications.warning('No AI descriptions to export.\n\nGenerate some descriptions first by clicking "🤖 AI Describe" on markers.');
             return;
         }
 
@@ -465,7 +554,7 @@ function exportAIDescriptionsJSON() {
         console.log(`Exported ${descriptions.length} AI descriptions to JSON`);
     } catch (error) {
         console.error('Error exporting AI descriptions to JSON:', error);
-        alert(`❌ Error exporting AI descriptions:\n\n${error.message}`);
+        window.Notifications.error(`Error exporting AI descriptions:\n\n${error.message}`);
     }
 }
 
@@ -477,7 +566,7 @@ function exportAIDescriptionsCSV() {
         const descriptions = getAllCachedDescriptions();
 
         if (descriptions.length === 0) {
-            alert('⚠️ No AI descriptions to export.\n\nGenerate some descriptions first by clicking "🤖 AI Describe" on markers.');
+            window.Notifications.warning('No AI descriptions to export.\n\nGenerate some descriptions first by clicking "🤖 AI Describe" on markers.');
             return;
         }
 
@@ -500,7 +589,7 @@ function exportAIDescriptionsCSV() {
         console.log(`Exported ${descriptions.length} AI descriptions to CSV`);
     } catch (error) {
         console.error('Error exporting AI descriptions to CSV:', error);
-        alert(`❌ Error exporting AI descriptions:\n\n${error.message}`);
+        window.Notifications.error(`Error exporting AI descriptions:\n\n${error.message}`);
     }
 }
 
@@ -529,7 +618,7 @@ function exportCurrentDescriptionTXT() {
     const model = sidebar.dataset.currentModel;
 
     if (!description) {
-        alert('No description to export');
+        window.Notifications.warning('No description to export');
         return;
     }
 
@@ -557,7 +646,7 @@ ${description}
         URL.revokeObjectURL(url);
     } catch (error) {
         console.error('Error exporting TXT:', error);
-        alert(`❌ Error exporting: ${error.message}`);
+        window.Notifications.error(`Error exporting:\n\n${error.message}`);
     }
 }
 
@@ -573,7 +662,7 @@ function exportCurrentDescriptionMD() {
     const model = sidebar.dataset.currentModel;
 
     if (!description) {
-        alert('No description to export');
+        window.Notifications.warning('No description to export');
         return;
     }
 
@@ -606,7 +695,7 @@ ${description}
         URL.revokeObjectURL(url);
     } catch (error) {
         console.error('Error exporting MD:', error);
-        alert(`❌ Error exporting: ${error.message}`);
+        window.Notifications.error(`Error exporting:\n\n${error.message}`);
     }
 }
 
@@ -622,7 +711,7 @@ function exportCurrentDescriptionJSON() {
     const model = sidebar.dataset.currentModel;
 
     if (!description) {
-        alert('No description to export');
+        window.Notifications.warning('No description to export');
         return;
     }
 
@@ -651,7 +740,7 @@ function exportCurrentDescriptionJSON() {
         URL.revokeObjectURL(url);
     } catch (error) {
         console.error('Error exporting JSON:', error);
-        alert(`❌ Error exporting: ${error.message}`);
+        window.Notifications.error(`Error exporting:\n\n${error.message}`);
     }
 }
 
@@ -663,7 +752,7 @@ function exportSingleDescriptionTXT(osmId, modelName) {
     const desc = descriptions.find(d => d.osmId === osmId && d.model === modelName);
 
     if (!desc) {
-        alert('Description not found');
+        window.Notifications.warning('Description not found');
         return;
     }
 
@@ -695,7 +784,7 @@ function exportSingleDescriptionMD(osmId, modelName) {
     const desc = descriptions.find(d => d.osmId === osmId && d.model === modelName);
 
     if (!desc) {
-        alert('Description not found');
+        window.Notifications.warning('Description not found');
         return;
     }
 
@@ -732,7 +821,7 @@ function exportSingleDescriptionJSON(osmId, modelName) {
     const desc = descriptions.find(d => d.osmId === osmId && d.model === modelName);
 
     if (!desc) {
-        alert('Description not found');
+        window.Notifications.warning('Description not found');
         return;
     }
 
@@ -792,12 +881,12 @@ async function testOpenRouterConnectionUI(event) {
         const result = await testOpenRouterConnection();
 
         if (result.success) {
-            alert(`✅ ${result.message}\n\nYour OpenRouter API is configured correctly!`);
+            await window.Notifications.success(`${result.message}\n\nYour OpenRouter API is configured correctly!`);
         } else {
-            alert(`❌ ${result.message}\n\nPlease check your API key and try again.`);
+            await window.Notifications.error(`${result.message}\n\nPlease check your API key and try again.`);
         }
     } catch (error) {
-        alert(`❌ Error: ${error.message}`);
+        await window.Notifications.error(`Error:\n\n${error.message}`);
     } finally {
         // Восстанавливаем кнопку
         if (btn) {
@@ -857,8 +946,8 @@ function showAIHistoryList() {
         return;
     }
 
-    // Сортируем по времени создания (новые сначала)
-    descriptions.sort((a, b) => b.timestamp - a.timestamp);
+    // Сортируем по uniqueId (от старых к новым)
+    descriptions.sort((a, b) => (a.uniqueId || 0) - (b.uniqueId || 0));
 
     let html = `
         <div style="margin-bottom: 15px; padding: 10px; background: var(--bg-tertiary); border-radius: 5px;">
@@ -870,7 +959,7 @@ function showAIHistoryList() {
         <div style="max-height: calc(100vh - 150px); overflow-y: auto;">
     `;
 
-    descriptions.forEach((desc, index) => {
+    descriptions.forEach((desc) => {
         const date = new Date(desc.timestamp).toLocaleString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -886,23 +975,49 @@ function showAIHistoryList() {
             ? desc.description.substring(0, 100) + '...'
             : desc.description;
 
+        // Используем uniqueId вместо index (если нет uniqueId - ставим 0)
+        const displayId = desc.uniqueId || 0;
+
         html += `
-            <div class="ai-history-item" onclick="window.AIDescriptions.showCachedDescription('${desc.osmId}', '${desc.model}')" style="margin-bottom: 10px; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 5px; cursor: pointer; transition: all 0.2s;">
-                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                    <strong style="font-size: 12px; color: var(--accent);">Location #${index + 1}</strong>
-                    <span style="font-size: 9px; color: var(--text-secondary);">${date}</span>
+            <div class="ai-history-item" style="margin-bottom: 10px; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 5px; transition: all 0.2s; position: relative;">
+                <div onclick="window.AIDescriptions.showCachedDescription('${desc.osmId}', '${desc.model}')" style="cursor: pointer;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                        <strong style="font-size: 12px; color: var(--accent);">Location #${displayId}</strong>
+                        <span style="font-size: 9px; color: var(--text-secondary);">${date}</span>
+                    </div>
+                    <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 5px;">
+                        Model: ${modelName}
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-primary); line-height: 1.4;">
+                        ${preview.replace(/\n/g, ' ')}
+                    </div>
                 </div>
-                <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 5px;">
-                    Model: ${modelName}
-                </div>
-                <div style="font-size: 11px; color: var(--text-primary); line-height: 1.4;">
-                    ${preview.replace(/\n/g, ' ')}
-                </div>
+                <button
+                    onclick="event.stopPropagation(); window.AIDescriptions.deleteSingleDescription('${desc.osmId}', '${desc.model}')"
+                    style="position: absolute; top: 8px; right: 8px; background: transparent; color: var(--error); border: none; padding: 2px; cursor: pointer; font-size: 16px; opacity: 0.6; transition: all 0.2s; line-height: 1;"
+                    onmouseover="this.style.opacity='1'; this.style.transform='scale(1.2)'"
+                    onmouseout="this.style.opacity='0.6'; this.style.transform='scale(1)'"
+                    title="Delete this description">
+                    🗑️
+                </button>
             </div>
         `;
     });
 
-    html += `</div>`;
+    html += `
+        </div>
+
+        <!-- Delete All Button -->
+        <div style="margin-top: 15px; padding: 15px; background: var(--bg-tertiary); border-radius: 5px; border-top: 2px solid var(--border);">
+            <button
+                onclick="window.AIDescriptions.deleteAllDescriptions()"
+                style="width: 100%; background: var(--error); color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500; transition: opacity 0.2s;"
+                onmouseover="this.style.opacity='0.8'"
+                onmouseout="this.style.opacity='1'">
+                🗑️ Delete All Descriptions (${descriptions.length})
+            </button>
+        </div>
+    `;
 
     content.innerHTML = html;
 
@@ -929,7 +1044,7 @@ function showCachedDescription(osmId, modelName) {
     const desc = descriptions.find(d => d.osmId === osmId && d.model === modelName);
 
     if (!desc) {
-        alert('Description not found in cache');
+        window.Notifications.warning('Description not found in cache');
         return;
     }
 
@@ -954,8 +1069,16 @@ function showCachedDescription(osmId, modelName) {
             </button>
         </div>
 
-        <div class="ai-description-header">
+        <div class="ai-description-header" style="position: relative;">
             <strong>📍 Location</strong>
+            <button
+                onclick="window.AIDescriptions.deleteSingleDescription('${desc.osmId}', '${desc.model}')"
+                style="position: absolute; top: 0; right: 0; background: transparent; color: var(--error); border: none; padding: 2px; cursor: pointer; font-size: 18px; opacity: 0.6; transition: all 0.2s; line-height: 1;"
+                onmouseover="this.style.opacity='1'; this.style.transform='scale(1.2)'"
+                onmouseout="this.style.opacity='0.6'; this.style.transform='scale(1)'"
+                title="Delete this description">
+                🗑️
+            </button>
             <br>
             <span style="font-size: 11px; color: var(--text-secondary);">
                 OSM ID: ${osmId}
@@ -1011,6 +1134,10 @@ function showAIDescriptionInSidebar(location, description, model, fromCache) {
     const content = document.getElementById('aiDescriptionContent');
     if (!content) return;
 
+    // Получаем osmId и modelKey для кнопки удаления
+    const osmId = location.id || `${location.lat}_${location.lon}`;
+    const modelKey = Object.keys(AI_MODELS).find(key => AI_MODELS[key].name === model) || '';
+
     // Формируем HTML с описанием
     const cacheLabel = fromCache
         ? '<span style="color: var(--accent); font-size: 11px;">📦 From Cache</span>'
@@ -1023,8 +1150,16 @@ function showAIDescriptionInSidebar(location, description, model, fromCache) {
             </button>
         </div>
 
-        <div class="ai-description-header">
+        <div class="ai-description-header" style="position: relative;">
             <strong>${location.name || 'Unnamed Location'}</strong>
+            <button
+                onclick="window.AIDescriptions.deleteSingleDescription('${osmId}', '${modelKey}')"
+                style="position: absolute; top: 0; right: 0; background: transparent; color: var(--error); border: none; padding: 2px; cursor: pointer; font-size: 18px; opacity: 0.6; transition: all 0.2s; line-height: 1;"
+                onmouseover="this.style.opacity='1'; this.style.transform='scale(1.2)'"
+                onmouseout="this.style.opacity='0.6'; this.style.transform='scale(1)'"
+                title="Delete this description">
+                🗑️
+            </button>
             <br>
             <span style="font-size: 11px; color: var(--text-secondary);">
                 Model: ${model} | ${cacheLabel}
@@ -1071,6 +1206,8 @@ function showAIDescriptionInSidebar(location, description, model, fromCache) {
         lon: location.lon
     });
     sidebar.dataset.currentModel = model;
+    sidebar.dataset.currentOsmId = osmId;
+    sidebar.dataset.currentModelKey = modelKey;
 
     // Показываем sidebar (без показа истории)
     toggleAISidebar(true, false);
@@ -1085,7 +1222,7 @@ async function copyCurrentDescription(event) {
 
     const description = sidebar.dataset.currentDescription;
     if (!description) {
-        alert('No description to copy');
+        window.Notifications.warning('No description to copy');
         return;
     }
 
@@ -1105,7 +1242,7 @@ async function copyCurrentDescription(event) {
             }, 2000);
         }
     } else {
-        alert('❌ Failed to copy to clipboard');
+        window.Notifications.error('Failed to copy to clipboard');
     }
 }
 
@@ -1128,7 +1265,7 @@ async function copyDescriptionFromHistory(description, event) {
             }, 2000);
         }
     } else {
-        alert('❌ Failed to copy to clipboard');
+        window.Notifications.error('Failed to copy to clipboard');
     }
 }
 
@@ -1139,7 +1276,7 @@ async function generateDescriptionForLocation(location, event) {
     const apiKey = getOpenRouterApiKey();
 
     if (!apiKey) {
-        alert('⚠️ OpenRouter API key is not configured!\n\nPlease add your API key in Settings (⚙️ button).');
+        window.Notifications.warning('OpenRouter API key is not configured!\n\nPlease add your API key in Settings (⚙️ button).');
         return;
     }
 
@@ -1165,7 +1302,7 @@ async function generateDescriptionForLocation(location, event) {
         );
 
     } catch (error) {
-        alert(`❌ Error generating AI description:\n\n${error.message}`);
+        window.Notifications.error(`Error generating AI description:\n\n${error.message}`);
     } finally {
         // Восстанавливаем кнопку
         if (btn) {
@@ -1208,6 +1345,8 @@ window.AIDescriptions = {
     cacheDescription,
     getAllCachedDescriptions,
     clearOldCaches,
+    deleteSingleDescription,
+    deleteAllDescriptions,
 
     // UI функции
     testOpenRouterConnectionUI,

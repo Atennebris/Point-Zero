@@ -114,7 +114,7 @@ function recenterMap() {
         window.AppState.map.setView(latlng, 12);
         window.AppState.searchMarker.openPopup();
     } else {
-        alert('No search location set. Please perform a search first.');
+        window.Notifications.info('No search location set. Please perform a search first.');
     }
 }
 

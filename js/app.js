@@ -117,7 +117,7 @@ async function testSimpleQuery() {
 async function searchObjects() {
     // Валидация входных данных
     if (!window.Validation.validateAllInputs()) {
-        alert('Please correct the validation errors before searching');
+        window.Notifications.warning('Please correct the validation errors before searching');
         return;
     }
 
@@ -133,7 +133,7 @@ async function searchObjects() {
     const useWikidata = document.getElementById('sourceWikidata').checked;
 
     if (!useOSM && !useGeoNames && !useWikidata) {
-        alert('Please select at least one data source!');
+        window.Notifications.warning('Please select at least one data source!');
         return;
     }
 
@@ -141,7 +141,7 @@ async function searchObjects() {
     if (useGeoNames) {
         const geonamesUsername = document.getElementById('geonamesUsername').value.trim();
         if (!geonamesUsername) {
-            alert('⚠️ GeoNames is enabled but username is not provided!\n\nPlease enter your GeoNames username in "🔑 API Credentials" section or disable GeoNames data source.');
+            window.Notifications.warning('GeoNames is enabled but username is not provided!\n\nPlease enter your GeoNames username in "🔑 API Credentials" section or disable GeoNames data source.');
             return;
         }
     }

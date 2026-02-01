@@ -34,7 +34,7 @@ async function testGeoNamesConnection() {
     const username = document.getElementById('geonamesUsername').value.trim();
 
     if (!username) {
-        alert('⚠️ Please enter your GeoNames username first!');
+        window.Notifications.warning('Please enter your GeoNames username first!');
         return;
     }
 
@@ -64,22 +64,22 @@ async function testGeoNamesConnection() {
         if (response.status === 401) {
             const errorDetail = data?.status?.message || 'Unknown error';
             console.error('GeoNames 401 Error:', errorDetail);
-            alert(`❌ GeoNames Test Failed: 401 Unauthorized\n\nError: ${errorDetail}\n\nYour account is NOT activated properly.\n\nCheck console (F12) for details.`);
+            window.Notifications.error(`GeoNames Test Failed: 401 Unauthorized\n\nError: ${errorDetail}\n\nYour account is NOT activated properly.\n\nCheck console (F12) for details.`);
             return;
         }
 
         if (response.ok) {
             if (data && data.name) {
-                alert(`✅ GeoNames Test Successful!\n\nYour account "${username}" is working correctly.\n\nTest location: ${data.name}, ${data.countryName}\n\nYou can now use GeoNames data source.`);
+                await window.Notifications.success(`GeoNames Test Successful!\n\nYour account "${username}" is working correctly.\n\nTest location: ${data.name}, ${data.countryName}\n\nYou can now use GeoNames data source.`);
             } else if (data && data.status) {
-                alert(`⚠️ GeoNames Error: ${data.status.message}`);
+                await window.Notifications.warning(`GeoNames Error: ${data.status.message}`);
             }
         } else {
-            alert(`❌ GeoNames Test Failed: HTTP ${response.status}\n\n${response.statusText}\n\nCheck console (F12) for details.`);
+            await window.Notifications.error(`GeoNames Test Failed: HTTP ${response.status}\n\n${response.statusText}\n\nCheck console (F12) for details.`);
         }
     } catch (error) {
         console.error('GeoNames test error:', error);
-        alert(`❌ Connection Error: ${error.message}\n\nCheck your internet connection.`);
+        await window.Notifications.error(`Connection Error: ${error.message}\n\nCheck your internet connection.`);
     }
 }
 
