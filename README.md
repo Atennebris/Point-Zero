@@ -25,6 +25,12 @@
 - 🔥 **Heatmap visualization** — density heatmap of objects
 - 🗂️ **Marker Clustering** — automatic grouping when > 50 results
 - 🌐 **Multiple data sources** — OpenStreetMap, GeoNames, Wikidata
+- 🤖 **AI Descriptions** — generate human-readable location descriptions via OpenRouter API
+  - History of all AI descriptions with viewing capability
+  - Export to TXT, MD, JSON formats
+  - Customizable prompts for personalized responses
+  - 30-day caching to save API requests
+  - 4 free models ($0/M tokens): Gemma 3 12B/27B, DeepSeek R1 Chimera, Xiaomi MiMo
 - 🔑 **API Credentials** — support for user API keys
 - ✅ **Coordinate validation** with visual feedback
 - 🔒 **100% client-side** — no servers, no tracking
@@ -123,7 +129,42 @@ xdg-open index.html
 - Click on record to restore parameters + auto-search
 - Stores up to 50 recent searches
 
-### 6️⃣ Theme Switching
+### 6️⃣ AI Descriptions (generate descriptions)
+
+**Setup:**
+1. Open **Settings** (⚙️) → "🤖 AI Descriptions (OpenRouter API)" section
+2. Register at [openrouter.ai/auth](https://openrouter.ai/auth)
+3. Get API key: [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys)
+4. Paste key into "OpenRouter API Key" field
+5. Select model (recommended: Gemma 3 12B)
+6. (Optional) Add custom prompt to personalize responses
+7. Click "💾 Save Settings"
+
+**Usage:**
+1. Click on marker on the map
+2. In popup, click **"🤖 AI Describe"**
+3. AI will generate human-readable description of the location
+4. Description opens in right sidebar
+
+**AI Descriptions History:**
+- Click **🤖** button in top-right corner of map
+- View all generated descriptions
+- Click on any description for detailed view
+- Export in formats: **TXT**, **MD**, **JSON**
+- Copy descriptions to clipboard with **📋 Copy** button
+
+**Free tier limits:**
+- **50 requests/day** (no credits)
+- **1000 requests/day** (with $10 credits on balance, credits NOT consumed)
+- 30-day caching eliminates repeated requests
+
+**Available free models ($0/M tokens):**
+- **Gemma 3 12B** (Google) — recommended, stable
+- **Gemma 3 27B** (Google) — more parameters, slower
+- **DeepSeek R1 Chimera** (671B MoE) — powerful, experimental
+- **Xiaomi MiMo Flash** — fast, compact
+
+### 7️⃣ Theme Switching
 
 - Click on **🌙/☀️** icon in header
 - Theme automatically saved between sessions
@@ -143,15 +184,17 @@ xdg-open index.html
 | **Frontend** | Vanilla JavaScript (modular structure) | ES6+ |
 | **Styling** | CSS3 with CSS Variables | — |
 | **Storage** | LocalStorage API | — |
+| **AI Descriptions** | OpenRouter API (Gemma, DeepSeek, Xiaomi) | Free tier |
 
 ### Architecture
 
-- **Modular structure** — 15 files (1 HTML, 1 CSS, 14 JS modules)
+- **Modular structure** — 16 files (1 HTML, 1 CSS, 15 JS modules)
 - **Separation of concerns** — each module responsible for its area
-- **No server-side** — 100% client-side operation
+- **No server-side** — 100% client-side operation (AI requests via OpenRouter API)
 - **Static application** — works on GitHub Pages without server
 - **Fallback servers** — 3 reserve Overpass API servers for reliability
 - **Multiple data sources** — OpenStreetMap, GeoNames, Wikidata
+- **AI integration** — description generation via OpenRouter (4 free models)
 
 ---
 
@@ -244,7 +287,7 @@ Point-Zero/
 ├── css/
 │   └── styles.css          # All application styles (750+ lines)
 │
-├── js/                     # JavaScript modules (14 files)
+├── js/                     # JavaScript modules (15 files)
 │   ├── config.js           # Global state and constants
 │   ├── utils.js            # Utilities (sleep, fetchWithRetry, addStatus)
 │   ├── validation.js       # Coordinate validation
@@ -259,6 +302,7 @@ Point-Zero/
 │   ├── tests.js            # Test locations toggle
 │   ├── api.js              # API requests (Overpass, GeoNames, Wikidata)
 │   ├── export.js           # Export to 7 formats
+│   ├── ai-descriptions.js  # AI description generation (OpenRouter API)
 │   ├── map.js              # Map and visualization
 │   └── app.js              # Main application logic
 │
@@ -353,6 +397,7 @@ Thanks to the mappers worldwide supporting OpenStreetMap.
 - [Overpass API](https://wiki.openstreetmap.org/wiki/Overpass_API) — query language for OSM
 - [GeoNames API](http://www.geonames.org) — global geographic database
 - [Wikidata Query Service](https://query.wikidata.org) — SPARQL queries to Wikidata
+- [OpenRouter API](https://openrouter.ai) — unified AI API (free models for location descriptions)
 
 ---
 

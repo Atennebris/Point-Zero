@@ -184,15 +184,17 @@ xdg-open index.html
 | **Frontend** | Vanilla JavaScript (модульная структура) | ES6+ |
 | **Styling** | CSS3 с CSS Variables | — |
 | **Storage** | LocalStorage API | — |
+| **AI Descriptions** | OpenRouter API (Gemma, DeepSeek, Xiaomi) | Free tier |
 
 ### Архитектура
 
-- **Модульная структура** — 15 файлов (1 HTML, 1 CSS, 14 JS модулей)
+- **Модульная структура** — 16 файлов (1 HTML, 1 CSS, 15 JS модулей)
 - **Разделение ответственности** — каждый модуль отвечает за свою область
-- **Без серверной части** — 100% клиентская работа
+- **Без серверной части** — 100% клиентская работа (AI запросы через OpenRouter API)
 - **Статическое приложение** — работает на GitHub Pages без сервера
 - **Fallback серверы** — 3 резервных Overpass API сервера для надежности
 - **Множественные источники данных** — OpenStreetMap, GeoNames, Wikidata
+- **AI интеграция** — генерация описаний через OpenRouter (4 бесплатные модели)
 
 ---
 
@@ -285,7 +287,7 @@ Point-Zero/
 ├── css/
 │   └── styles.css          # Все стили приложения (750+ строк)
 │
-├── js/                     # JavaScript модули (14 файлов)
+├── js/                     # JavaScript модули (15 файлов)
 │   ├── config.js           # Глобальное состояние и константы
 │   ├── utils.js            # Утилиты (sleep, fetchWithRetry, addStatus)
 │   ├── validation.js       # Валидация координат
@@ -300,6 +302,7 @@ Point-Zero/
 │   ├── tests.js            # Test locations toggle
 │   ├── api.js              # API запросы (Overpass, GeoNames, Wikidata)
 │   ├── export.js           # Экспорт в 7 форматов
+│   ├── ai-descriptions.js  # AI генерация описаний (OpenRouter API)
 │   ├── map.js              # Карта и визуализация
 │   └── app.js              # Главная логика приложения
 │
@@ -393,6 +396,7 @@ SOFTWARE.
 - [Overpass API](https://wiki.openstreetmap.org/wiki/Overpass_API) — query-язык для OSM
 - [GeoNames API](http://www.geonames.org) — глобальная база географических данных
 - [Wikidata Query Service](https://query.wikidata.org) — SPARQL запросы к Wikidata
+- [OpenRouter API](https://openrouter.ai) — унифицированный AI API (бесплатные модели для описаний объектов)
 
 ---
 
